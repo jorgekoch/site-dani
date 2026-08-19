@@ -1,4 +1,4 @@
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Sparkles } from 'lucide-react'
 
 import treating from '../../assets/dani-atendendo.jpeg'
 import { siteLinks } from '../../data/site'
@@ -20,7 +20,7 @@ export function AboutSection() {
 
       <section className="manifesto">
         <div className="container manifesto-inner">
-          <span aria-hidden="true">✦</span>
+          <Sparkles size={22} />
           <p>Alívio da dor é importante.<br /><strong>Entender a causa é ainda mais.</strong></p>
         </div>
       </section>
