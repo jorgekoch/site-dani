@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { prisma } from '../../lib/prisma.js'
 import { hashPassword, issueAdminToken, safeEqual, verifyPassword } from '../../lib/auth.js'
-import { requireAdmin } from '../../middleware/requireAdmin.js'
+import { requireAdminContext, requireRole } from '../../middleware/requireAdminContext.js'
 import { z } from 'zod'
 
 export const authRouter = Router()
@@ -26,7 +26,6 @@ authRouter.post('/login',async(req,res)=>{
   } catch { res.status(503).json({message:'Não foi possível autenticar agora.'}) }
 })
 
-authRouter.get('/me',requireAdmin,(req,res)=>res.json({admin:res.locals.admin}))
-
-authRouter.get('/users',requireAdmin,async(_req,res)=>{const users=await prisma.adminUser.findMany({orderBy:{createdAt:'asc'},select:{id:true,name:true,email:true,role:true,active:true,createdAt:true}});res.json(users)})
-authRouter.post('/users',requireAdmin,async(req,res)=>{const parsed=userSchema.safeParse(req.body);if(!parsed.success){res.status(400).json({message:'Confira os dados do usuário.'});return}try{const user=await prisma.adminUser.create({data:{...parsed.data,passwordHash:hashPassword(parsed.data.password)}});res.status(201).json({id:user.id,name:user.name,email:user.email,role:user.role,active:user.active})}catch{res.status(409).json({message:'Este e-mail já está cadastrado.'})}})
+authRouter.get('/me',requireAdminContext,async(_req,res)=>res.json({admin:res.locals.admin}))
+authRouter.get('/users',requireAdminContext,requireRole('ADMIN'),async(_req,res)=>{const users=await prisma.adminUser.findMany({orderBy:{createdAt:'asc'},select:{id:true,name:true,email:true,role:true,active:true,createdAt:true}});res.json(users)})
+authRouter.post('/users',requireAdminContext,requireRole('ADMIN'),async(req,res)=>{const parsed=userSchema.safeParse(req.body);if(!parsed.success){res.status(400).json({message:'Confira os dados do usuário.'});return}try{const user=await prisma.adminUser.create({data:{...parsed.data,passwordHash:hashPassword(parsed.data.password)}});res.status(201).json({id:user.id,name:user.name,email:user.email,role:user.role,active:user.active})}catch{res.status(409).json({message:'Este e-mail já está cadastrado.'})}})
