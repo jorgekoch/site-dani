@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { NextFunction, Request, Response, Router } from 'express'
 import { prisma } from '../../lib/prisma.js'
 import { triageStatusSchema, triageStatusUpdateSchema, triageSubmissionSchema } from './triage.schema.js'
 
@@ -19,7 +19,7 @@ triageRouter.post('/', async (req, res, next) => {
   }
 })
 
-export async function listTriage(req: Parameters<Router['get']>[1], res: any, next: any) {
+export async function listTriage(req: Request, res: Response, next: NextFunction) {
   try {
     const status = typeof req.query.status === 'string' ? triageStatusSchema.parse(req.query.status) : undefined
     const submissions = await prisma.triageSubmission.findMany({
@@ -32,7 +32,7 @@ export async function listTriage(req: Parameters<Router['get']>[1], res: any, ne
   }
 }
 
-export async function updateTriageStatus(req: Parameters<Router['patch']>[1], res: any, next: any) {
+export async function updateTriageStatus(req: Request, res: Response, next: NextFunction) {
   try {
     const { status } = triageStatusUpdateSchema.parse(req.body)
     const submission = await prisma.triageSubmission.update({
