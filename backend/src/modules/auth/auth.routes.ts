@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { prisma } from '../../lib/prisma.js'
 import { hashPassword, issueAdminToken, safeEqual, verifyPassword } from '../../lib/auth.js'
-import { requireAdmin, requireRole } from '../../middleware/requireAdmin.js'
+import { requireAdmin } from '../../middleware/requireAdmin.js'
 import { z } from 'zod'
 
 export const authRouter = Router()
@@ -20,18 +20,13 @@ authRouter.post('/login',async(req,res)=>{
   try {
     let user=await prisma.adminUser.findUnique({where:{email}})
     const envEmail=process.env.ADMIN_EMAIL?.toLowerCase(); const envPassword=process.env.ADMIN_PASSWORD
-    if(!user && envEmail===email && envPassword && safeEqual(parsed.data.password,envPassword)) {
-      user=await prisma.adminUser.create({data:{name:'Administrador',email,role:'ADMIN',passwordHash:hashPassword(envPassword)}})
-    }
+    if(!user && envEmail===email && envPassword && safeEqual(parsed.data.password,envPassword)) user=await prisma.adminUser.create({data:{name:'Administrador',email,role:'ADMIN',passwordHash:hashPassword(envPassword)}})
     if(!user || !user.active || !verifyPassword(parsed.data.password,user.passwordHash)){registerFailure(key);res.status(401).json({message:'Credenciais inválidas.'});return}
     clearFailures(key);res.json({token:issueAdminToken(user.email,user.role),user:{id:user.id,name:user.name,email:user.email,role:user.role}})
   } catch { res.status(503).json({message:'Não foi possível autenticar agora.'}) }
 })
 
-authRouter.get('/me',requireAdmin,(req,res)=>{res.json({admin:res.locals.admin})})
+authRouter.get('/me',requireAdmin,(req,res)=>res.json({admin:res.locals.admin}))
 
-authRouter.get('/users',requireAdmin,requireRole('ADMIN'),async(_req,res)=>{const users=await prisma.adminUser.findMany({orderBy:{createdAt:'asc'},select:{id:true,name:true,email:true,role:true,active:true,createdAt:true}});res.json(users)})
-
-authRouter.post('/users',requireAdmin,requireRole('ADMIN'),async(req,res)=>{const parsed=userSchema.safeParse(req.body);if(!parsed.success){res.status(400).json({message:'Confira os dados do usuário.'});return}try{const user=await prisma.adminUser.create({data:{...parsed.data,passwordHash:hashPassword(parsed.data.password)}});res.status(201).json({id:user.id,name:user.name,email:user.email,role:user.role,active:user.active})}catch{res.status(409).json({message:'Este e-mail já está cadastrado.'})}})
-
-authRouter.patch('/users/:id',requireAdmin,requireRole('ADMIN'),async(req,res)=>{const schema=z.object({active:z.boolean().optional(),name:z.string().trim().min(2).max(120).optional(),password:z.string().min(10).max(200).optional()});const parsed=schema.safeParse(req.body);if(!parsed.success){res.status(400).json({message:'Dados inválidos.'});return}const data={...parsed.data,passwordHash:parsed.data.password?hashPassword(parsed.data.password):undefined};delete (data as any).password;const user=await prisma.adminUser.update({where:{id:req.params.id},data});res.json({id:user.id,name:user.name,email:user.email,role:user.role,active:user.active})})
+authRouter.get('/users',requireAdmin,async(_req,res)=>{const users=await prisma.adminUser.findMany({orderBy:{createdAt:'asc'},select:{id:true,name:true,email:true,role:true,active:true,createdAt:true}});res.json(users)})
+authRouter.post('/users',requireAdmin,async(req,res)=>{const parsed=userSchema.safeParse(req.body);if(!parsed.success){res.status(400).json({message:'Confira os dados do usuário.'});return}try{const user=await prisma.adminUser.create({data:{...parsed.data,passwordHash:hashPassword(parsed.data.password)}});res.status(201).json({id:user.id,name:user.name,email:user.email,role:user.role,active:user.active})}catch{res.status(409).json({message:'Este e-mail já está cadastrado.'})}})
