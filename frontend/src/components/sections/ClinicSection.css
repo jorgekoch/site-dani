@@ -25,6 +25,11 @@
   height: 535px;
   overflow: hidden;
   background: #09090b;
+  outline: none;
+}
+
+.clinic-gallery-stage:focus-visible {
+  box-shadow: inset 0 0 0 2px rgba(245,242,238,.75);
 }
 
 .clinic-gallery-image {
@@ -42,6 +47,7 @@
 .clinic-gallery-image.is-active {
   opacity: .86;
   transform: scale(1);
+  cursor: zoom-in;
 }
 
 .clinic-gallery-overlay {
@@ -152,6 +158,62 @@
   line-height: 1.75;
 }
 
+.clinic-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 32px 80px;
+  background: rgba(3,3,4,.94);
+  backdrop-filter: blur(14px);
+}
+
+.clinic-lightbox > img {
+  width: auto;
+  max-width: min(1100px, 90vw);
+  max-height: 88vh;
+  object-fit: contain;
+  filter: grayscale(1);
+  box-shadow: 0 30px 100px rgba(0,0,0,.45);
+}
+
+.clinic-lightbox-close,
+.clinic-lightbox-nav {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.2);
+  color: #f5f2ee;
+  background: rgba(10,10,11,.6);
+  backdrop-filter: blur(10px);
+}
+
+.clinic-lightbox-close {
+  top: 24px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+
+.clinic-lightbox-nav {
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.clinic-lightbox-prev { left: 24px; }
+.clinic-lightbox-next { right: 24px; }
+
+.clinic-lightbox-close:hover,
+.clinic-lightbox-nav:hover {
+  background: rgba(255,255,255,.12);
+}
+
 @media (max-width: 900px) {
   .clinic-gallery-layout {
     grid-template-columns: 1fr;
@@ -173,10 +235,21 @@
   }
 
   .clinic-gallery-thumbs {
-    height: 65px;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-    padding: 4px;
+    height: 72px;
+    display: flex;
+    gap: 5px;
+    padding: 5px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .clinic-gallery-thumbs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .clinic-gallery-thumbs button {
+    flex: 0 0 76px;
   }
 
   .clinic-gallery-controls {
@@ -192,4 +265,21 @@
   .clinic-info {
     padding: 40px 28px;
   }
+
+  .clinic-lightbox {
+    padding: 24px 18px;
+  }
+
+  .clinic-lightbox > img {
+    max-width: 100%;
+    max-height: 78vh;
+  }
+
+  .clinic-lightbox-nav {
+    width: 40px;
+    height: 40px;
+  }
+
+  .clinic-lightbox-prev { left: 10px; }
+  .clinic-lightbox-next { right: 10px; }
 }
