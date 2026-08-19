@@ -1,0 +1,136 @@
+.header {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(8,8,10,.72);
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  backdrop-filter: blur(18px);
+}
+
+.header__inner {
+  height: 78px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+}
+
+.header__brand {
+  padding: 0;
+  background: transparent;
+}
+
+.header__brand img {
+  width: 164px;
+  height: auto;
+}
+
+.header__nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-left: auto;
+}
+
+.header__nav button {
+  color: #aaa6a3;
+  background: none;
+  font-size: 12px;
+  transition: color .2s ease;
+}
+
+.header__nav button:hover {
+  color: #fff;
+}
+
+.header__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 17px;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  transition: .25s ease;
+}
+
+.header__cta:hover {
+  background: #fff;
+  color: #08080a;
+}
+
+.header__menu-button,
+.header__mobile-nav {
+  display: none;
+}
+
+@media (max-width: 1000px) {
+  .header__nav {
+    display: none;
+  }
+
+  .header__cta {
+    margin-left: auto;
+  }
+
+  .header__menu-button {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    color: #fff;
+  }
+
+  .header__mobile-nav {
+    display: flex;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 78px;
+    flex-direction: column;
+    padding: 14px 24px 24px;
+    background: rgba(10,10,11,.97);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(20px);
+  }
+
+  .header__mobile-nav button,
+  .header__mobile-nav a {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 0;
+    color: #bbb7b4;
+    background: transparent;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    font-size: 13px;
+  }
+
+  .header__mobile-nav a {
+    color: #fff;
+    font-weight: 700;
+  }
+}
+
+@media (max-width: 720px) {
+  .header__inner {
+    height: 68px;
+  }
+
+  .header__brand img {
+    width: 138px;
+  }
+
+  .header__cta {
+    display: none;
+  }
+
+  .header__mobile-nav {
+    top: 68px;
+  }
+}

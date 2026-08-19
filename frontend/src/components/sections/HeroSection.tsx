@@ -1,5 +1,6 @@
 import { ArrowRight, Clock3, ShieldCheck } from 'lucide-react'
 
+import './HeroSection.css'
 import portrait from '../../assets/dani-transparente.png'
 import { siteLinks } from '../../data/site'
 import { useScrollTo } from '../../hooks/useScrollTo'
@@ -11,17 +12,17 @@ export function HeroSection() {
     <section className="hero" id="inicio">
       <div className="hero-noise" aria-hidden="true" />
 
-      <div className="hero-image-side" aria-hidden="true">
-        <div className="hero-image-wash" />
-        <img className="hero-portrait" src={portrait} alt="" />
-        <div className="hero-image-caption">
+      <div className="hero__image-side" aria-hidden="true">
+        <div className="hero__image-wash" />
+        <img className="hero__portrait" src={portrait} alt="" />
+        <div className="hero__image-caption">
           <span>Danielle Evangelista</span>
           <small>Fisioterapeuta</small>
         </div>
       </div>
 
-      <div className="container hero-content-shell">
-        <div className="hero-copy">
+      <div className="container hero__content-shell">
+        <div className="hero__copy">
           <span className="eyebrow"><span /> Fisioterapia • Fazenda Rio Grande</span>
           <p className="hero-kicker">TRATAMENTO INDIVIDUALIZADO</p>
           <h1>Seu corpo fala.<br /><em>Eu escuto.</em></h1>

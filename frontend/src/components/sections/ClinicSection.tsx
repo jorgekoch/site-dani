@@ -1,5 +1,6 @@
 import { MapPin, MoveUpRight } from 'lucide-react'
 
+import './ClinicSection.css'
 import clinic from '../../assets/consultorio.jpeg'
 import { siteLinks } from '../../data/site'
 

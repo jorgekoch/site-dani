@@ -1,0 +1,49 @@
+.cta {
+  position: relative;
+  padding: 150px 0;
+  overflow: hidden;
+  background: #f1efed;
+  color: #09090a;
+  text-align: center;
+}
+
+.cta-glow {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(0,0,0,.045);
+  filter: blur(40px);
+}
+
+.cta-inner {
+  position: relative;
+}
+
+.cta .section-kicker {
+  color: #777371;
+}
+
+.cta .section-kicker::before {
+  background: #777371;
+}
+
+.cta h2 {
+  margin-top: 20px;
+  color: #09090a;
+  font-size: clamp(52px, 7vw, 90px);
+}
+
+.cta p {
+  margin: 24px 0 32px;
+  color: #696563;
+  font-size: 14px;
+}
+
+.cta .button-light:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0,0,0,.12);
+}

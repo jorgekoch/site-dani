@@ -1,5 +1,6 @@
 import { ArrowRight } from 'lucide-react'
 
+import './SpecialtiesSection.css'
 import { specialties } from '../../data/site'
 
 export function SpecialtiesSection() {

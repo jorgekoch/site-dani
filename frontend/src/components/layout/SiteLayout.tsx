@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 
+import './SiteLayout.css'
 import { Footer } from './Footer'
 import { Header } from './Header'
 

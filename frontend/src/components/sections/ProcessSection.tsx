@@ -1,5 +1,6 @@
 import { Clock3 } from 'lucide-react'
 
+import './ProcessSection.css'
 import clinic from '../../assets/consultorio.jpeg'
 import { steps } from '../../data/site'
 

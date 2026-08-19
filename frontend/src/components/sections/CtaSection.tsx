@@ -1,5 +1,6 @@
 import { ArrowRight } from 'lucide-react'
 
+import './CtaSection.css'
 import { siteLinks } from '../../data/site'
 
 export function CtaSection() {

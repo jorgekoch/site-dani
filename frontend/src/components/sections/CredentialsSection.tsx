@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react'
 
+import './CredentialsSection.css'
 import skeleton from '../../assets/dani-esqueleto.jpeg'
 import { credentials } from '../../data/site'
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ChevronDown, MessageCircle, X } from 'lucide-react'
 
+import './FaqSection.css'
 import { faqs, siteLinks } from '../../data/site'
 
 export function FaqSection() {

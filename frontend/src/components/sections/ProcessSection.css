@@ -1,0 +1,158 @@
+.section-heading,
+.specialties-top {
+  display: grid;
+  grid-template-columns: 1fr .62fr;
+  gap: 70px;
+  align-items: end;
+}
+
+h2 {
+  margin: 20px 0 0;
+  color: #f3f1ef;
+  font: 800 clamp(40px, 5vw, 66px)/.98 'Manrope';
+  letter-spacing: -.065em;
+}
+
+.section-heading > p,
+.specialties-top > p {
+  max-width: 390px;
+  margin: 0 0 4px;
+  color: #8f8b89;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.steps {
+  margin-top: 80px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.step {
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 35px;
+  padding: 24px 24px 30px 0;
+  border-right: 1px solid var(--line);
+}
+
+.step:not(:first-child) {
+  padding-left: 24px;
+}
+
+.step:last-child {
+  border-right: 0;
+}
+
+.step-number {
+  color: #6f6b69;
+  font: 600 10px 'Manrope';
+  letter-spacing: .1em;
+}
+
+.step h3 {
+  margin: 0 0 10px;
+  font: 700 16px 'Manrope';
+}
+
+.step p {
+  margin: 0;
+  color: #878381;
+  font-size: 12px;
+  line-height: 1.75;
+}
+
+.process-feature {
+  margin-top: 90px;
+  display: grid;
+  grid-template-columns: 1.05fr .95fr;
+  background: #111113;
+}
+
+.process-image {
+  min-height: 540px;
+  overflow: hidden;
+}
+
+.process-image img {
+  width: 100%;
+  height: 100%;
+  min-height: 540px;
+  object-fit: cover;
+  filter: grayscale(1);
+  opacity: .82;
+}
+
+.process-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 65px;
+}
+
+.process-content h3 {
+  margin: 20px 0 22px;
+  font: 800 clamp(36px, 4vw, 56px)/1.03 'Manrope';
+  letter-spacing: -.06em;
+}
+
+.process-content h3 em {
+  font-family: var(--serif);
+  font-weight: 400;
+}
+
+.process-content > p {
+  color: #999593;
+  font-size: 13px;
+  line-height: 1.85;
+}
+
+.duration {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  margin-top: 30px;
+  padding-top: 23px;
+  border-top: 1px solid var(--line);
+}
+
+.duration svg {
+  color: #dedad7;
+}
+
+.duration div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.duration strong {
+  font-size: 12px;
+}
+
+.duration span {
+  color: #777371;
+  font-size: 10px;
+}
+
+@media (max-width: 720px) {
+  .section-heading,
+  .specialties-top,
+  .process-feature {
+    grid-template-columns: 1fr;
+  }
+
+  .section-heading > p,
+  .specialties-top > p {
+    margin-top: 25px;
+  }
+
+  .steps {
+    grid-template-columns: 1fr 1fr;
+    margin-top: 50px;
+  }
+}

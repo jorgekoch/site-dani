@@ -1,5 +1,6 @@
 import { ArrowRight, Sparkles } from 'lucide-react'
 
+import './AboutSection.css'
 import treating from '../../assets/dani-atendendo.jpeg'
 import { siteLinks } from '../../data/site'
 
