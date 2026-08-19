@@ -14,7 +14,13 @@ export function HeroSection() {
 
       <div className="hero__image-side" aria-hidden="true">
         <div className="hero__image-wash" />
-        <img className="hero__portrait" src={portrait} alt="" />
+        <img
+          className="hero__portrait"
+          src={portrait}
+          alt=""
+          fetchPriority="high"
+          decoding="async"
+        />
         <div className="hero__image-caption">
           <span>Danielle Evangelista</span>
           <small>Fisioterapeuta</small>
