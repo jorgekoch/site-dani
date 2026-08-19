@@ -1,5 +1,7 @@
+import type { ReactNode } from 'react'
+
 interface SectionKickerProps {
-  children: React.ReactNode
+  children: ReactNode
 }
 
 export function SectionKicker({ children }: SectionKickerProps) {
