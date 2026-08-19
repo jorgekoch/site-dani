@@ -11,8 +11,9 @@ interface SiteLayoutProps {
 export function SiteLayout({ children }: SiteLayoutProps) {
   return (
     <div className="site-shell">
+      <a className="skip-link" href="#conteudo">Pular para o conteúdo</a>
       <Header />
-      <main>{children}</main>
+      <main id="conteudo">{children}</main>
       <Footer />
     </div>
   )
