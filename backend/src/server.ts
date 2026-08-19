@@ -18,16 +18,14 @@ app.use(express.json({ limit: '100kb' }))
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }))
 app.use('/api/triage', triageRouter)
+app.use('/api/admin', (_req, res, next) => { res.setHeader('Cache-Control', 'no-store'); next() })
 app.use('/api/admin/auth', authRouter)
 app.get('/api/admin/triage', requireAdmin, listTriage)
 app.get('/api/admin/triage/:id', requireAdmin, getTriage)
 app.patch('/api/admin/triage/:id/status', requireAdmin, updateTriageStatus)
 
 app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
-  if (error instanceof ZodError) {
-    res.status(400).json({ message: 'Confira os campos da ficha e tente novamente.', fields: error.flatten().fieldErrors })
-    return
-  }
+  if (error instanceof ZodError) { res.status(400).json({ message: 'Confira os campos da ficha e tente novamente.', fields: error.flatten().fieldErrors }); return }
   console.error('Unhandled API error')
   res.status(500).json({ message: 'Não foi possível concluir a operação.' })
 })
