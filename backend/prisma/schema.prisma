@@ -15,6 +15,30 @@ enum TriageStatus {
   COMPLETED
 }
 
+enum TreatmentReason {
+  INJURY_RECOVERY
+  HEALTH_MAINTENANCE
+}
+
+enum AdminRole {
+  ADMIN
+  STAFF
+}
+
+model AdminUser {
+  id           String      @id @default(cuid())
+  name         String
+  email        String      @unique
+  passwordHash String
+  role         AdminRole   @default(STAFF)
+  active       Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  auditLogs    AuditLog[]
+
+  @@index([active, role])
+}
+
 model TriageSubmission {
   id                    String       @id @default(cuid())
   status                TriageStatus @default(NEW)
@@ -24,7 +48,7 @@ model TriageSubmission {
   whatsapp              String
   treatmentReason       TreatmentReason
   injuryDescription     String?
-  injuryDuration       String?
+  injuryDuration        String?
   medicalReferral       Boolean
   medicalDiagnosis      String?
   mainComplaint         String
@@ -36,7 +60,7 @@ model TriageSubmission {
   physicalActivityType  String?
   sportsInjury          Boolean?
   sportsInjuryDetails   String?
-  complementaryExams   Boolean
+  complementaryExams    Boolean
   complementaryExamsDetails String?
   surgery               Boolean
   surgeryDetails        String?
@@ -49,12 +73,22 @@ model TriageSubmission {
   consentAccepted      Boolean
   createdAt             DateTime     @default(now())
   updatedAt             DateTime     @updatedAt
+  auditLogs             AuditLog[]
 
   @@index([status, createdAt])
   @@index([whatsapp])
 }
 
-enum TreatmentReason {
-  INJURY_RECOVERY
-  HEALTH_MAINTENANCE
+model AuditLog {
+  id          String            @id @default(cuid())
+  action      String
+  details     String?
+  createdAt   DateTime          @default(now())
+  actorId     String
+  actor       AdminUser         @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  triageId    String?
+  triage      TriageSubmission? @relation(fields: [triageId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt])
+  @@index([triageId, createdAt])
 }
