@@ -1,5 +1,5 @@
-import { ChevronLeft, ChevronRight, MapPin, MoveUpRight } from 'lucide-react'
-import { useState } from 'react'
+import { ChevronLeft, ChevronRight, MapPin, MoveUpRight, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 import './ClinicSection.css'
 import clinic2 from '../../assets/consultorio (2).jpeg'
@@ -23,9 +23,25 @@ const gallery = [
 
 export function ClinicSection() {
   const [current, setCurrent] = useState(0)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
 
   const previous = () => setCurrent((index) => (index - 1 + gallery.length) % gallery.length)
   const next = () => setCurrent((index) => (index + 1) % gallery.length)
+
+  useEffect(() => {
+    if (!lightboxOpen) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setLightboxOpen(false)
+      if (event.key === 'ArrowLeft') previous()
+      if (event.key === 'ArrowRight') next()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [lightboxOpen])
 
   return (
     <section className="clinic section" id="consultorio">
@@ -37,7 +53,15 @@ export function ClinicSection() {
 
         <div className="clinic-gallery-layout">
           <div className="clinic-gallery" aria-label="Galeria do consultório e dos atendimentos">
-            <div className="clinic-gallery-stage">
+            <div
+              className="clinic-gallery-stage"
+              tabIndex={0}
+              aria-label="Galeria. Use as setas do teclado para navegar."
+              onKeyDown={(event) => {
+                if (event.key === 'ArrowLeft') previous()
+                if (event.key === 'ArrowRight') next()
+              }}
+            >
               {gallery.map((image, index) => (
                 <img
                   key={image.src}
@@ -45,6 +69,15 @@ export function ClinicSection() {
                   src={image.src}
                   alt={image.alt}
                   loading={index === 0 ? 'eager' : 'lazy'}
+                  onClick={() => index === current && setLightboxOpen(true)}
+                  role="button"
+                  tabIndex={index === current ? 0 : -1}
+                  onKeyDown={(event) => {
+                    if (index === current && (event.key === 'Enter' || event.key === ' ')) {
+                      event.preventDefault()
+                      setLightboxOpen(true)
+                    }
+                  }}
                 />
               ))}
 
@@ -54,7 +87,7 @@ export function ClinicSection() {
                 <button type="button" onClick={previous} aria-label="Imagem anterior">
                   <ChevronLeft size={19} />
                 </button>
-                <span>{String(current + 1).padStart(2, '0')} / {String(gallery.length).padStart(2, '0')}</span>
+                <span aria-live="polite">{String(current + 1).padStart(2, '0')} / {String(gallery.length).padStart(2, '0')}</span>
                 <button type="button" onClick={next} aria-label="Próxima imagem">
                   <ChevronRight size={19} />
                 </button>
@@ -68,7 +101,7 @@ export function ClinicSection() {
                   type="button"
                   className={index === current ? 'is-active' : ''}
                   onClick={() => setCurrent(index)}
-                  aria-label={`Mostrar imagem ${index + 1}`}
+                  aria-label={`Mostrar imagem ${index + 1}: ${image.alt}`}
                   aria-selected={index === current}
                   role="tab"
                 >
@@ -87,6 +120,25 @@ export function ClinicSection() {
           </div>
         </div>
       </div>
+
+      {lightboxOpen && (
+        <div className="clinic-lightbox" role="dialog" aria-modal="true" aria-label="Visualização ampliada da galeria" onClick={() => setLightboxOpen(false)}>
+          <button type="button" className="clinic-lightbox-close" onClick={() => setLightboxOpen(false)} aria-label="Fechar imagem ampliada">
+            <X size={22} />
+          </button>
+          <button type="button" className="clinic-lightbox-nav clinic-lightbox-prev" onClick={(event) => { event.stopPropagation(); previous() }} aria-label="Imagem anterior">
+            <ChevronLeft size={25} />
+          </button>
+          <img
+            src={gallery[current].src}
+            alt={gallery[current].alt}
+            onClick={(event) => event.stopPropagation()}
+          />
+          <button type="button" className="clinic-lightbox-nav clinic-lightbox-next" onClick={(event) => { event.stopPropagation(); next() }} aria-label="Próxima imagem">
+            <ChevronRight size={25} />
+          </button>
+        </div>
+      )}
     </section>
   )
 }
