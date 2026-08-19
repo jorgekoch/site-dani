@@ -1,7 +1,7 @@
 export const siteLinks = {
   whatsapp: 'https://wa.me/5541998837462',
   instagram: 'https://www.instagram.com/danielle.evangelista/',
-  maps: 'https://maps.google.com/?q=Av.%20Venezuela%2051%20Sobreloja%20Sala%2002%20Fazenda%20Rio%20Grande%20PR',
+  maps: 'https://www.google.com/maps/place/Danielle+Evangelista+-+FISIOTERAPEUTA+-+Especialista+Tratamento+da+Coluna+Vertebral/@-25.6516474,-49.3119762,17z/data=!3m1!4b1!4m6!3m5!1s0x94dcff1751ee4963:0xb962f8c2bce9c11a!8m2!3d-25.6516523!4d-49.3073628!16s%2Fg%2F11rnczxyqj?entry=ttu&g_ep=EgoyMDI2MDgxNi4wIKXMDSoASAFQAw%3D%3D',
 }
 
 export const navigationItems = [
