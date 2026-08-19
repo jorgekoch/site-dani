@@ -15,15 +15,7 @@ triageRouter.post('/', async (req, res, next) => {
 export async function listTriage(req: Request, res: Response, next: NextFunction) {
   try {
     const status = typeof req.query.status === 'string' ? triageStatusSchema.parse(req.query.status) : undefined
-    const submissions = await prisma.triageSubmission.findMany({
-      where: status ? { status } : undefined,
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true, status: true, fullName: true, age: true, profession: true, whatsapp: true,
-        mainComplaint: true, painLocation: true, painLevel: true, treatmentReason: true,
-        createdAt: true, updatedAt: true,
-      },
-    })
+    const submissions = await prisma.triageSubmission.findMany({ where: status ? { status } : undefined, orderBy: { createdAt: 'desc' }, select: { id:true,status:true,fullName:true,age:true,profession:true,whatsapp:true,mainComplaint:true,painLocation:true,painLevel:true,treatmentReason:true,createdAt:true,updatedAt:true } })
     res.json(submissions)
   } catch (error) { next(error) }
 }
@@ -39,7 +31,16 @@ export async function getTriage(req: Request, res: Response, next: NextFunction)
 export async function updateTriageStatus(req: Request, res: Response, next: NextFunction) {
   try {
     const { status } = triageStatusUpdateSchema.parse(req.body)
-    const submission = await prisma.triageSubmission.update({ where: { id: req.params.id }, data: { status } })
+    const actor = res.locals.admin as { sub:string } | undefined
+    const user = actor ? await prisma.adminUser.findUnique({ where:{email:actor.sub} }) : null
+    if (!user) { res.status(401).json({ message:'Usuário administrativo não encontrado.' }); return }
+    const existing = await prisma.triageSubmission.findUnique({ where:{id:req.params.id}, select:{status:true} })
+    if (!existing) { res.status(404).json({message:'Ficha não encontrada.'}); return }
+    const submission = await prisma.$transaction(async tx => {
+      const updated = await tx.triageSubmission.update({ where: { id: req.params.id }, data: { status } })
+      await tx.auditLog.create({ data:{actorId:user.id,triageId:updated.id,action:'TRIAGE_STATUS_CHANGED',details:`${existing.status} -> ${status}`} })
+      return updated
+    })
     res.json(submission)
   } catch (error) { next(error) }
 }
