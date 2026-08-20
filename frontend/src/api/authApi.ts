@@ -45,8 +45,23 @@ export type AdminUserListItem = {
   email: string;
   role: AdminRole;
   active: boolean;
+  createdAt?: string;
 };
 
 export async function listAdminUsers() {
   return apiRequest<AdminUserListItem[]>("/api/admin/auth/users");
+}
+
+export type CreateAdminUserInput = {
+  name: string;
+  email: string;
+  password: string;
+  role: AdminRole;
+};
+
+export async function createAdminUser(data: CreateAdminUserInput) {
+  return apiRequest<AdminUserListItem>("/api/admin/auth/users", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }

@@ -1,6 +1,11 @@
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
-import { listAdminUsers, type AdminUserListItem } from "../../api/authApi";
+import {
+  createAdminUser,
+  listAdminUsers,
+  type AdminRole,
+  type AdminUserListItem,
+} from "../../api/authApi";
 
 import { useAuth } from "../../auth/AuthContext";
 
@@ -13,6 +18,17 @@ export function AdminUsersPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [showForm, setShowForm] = useState(false);
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<AdminRole>("STAFF");
+
+  const [creating, setCreating] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [success, setSuccess] = useState("");
 
   async function loadUsers() {
     setLoading(true);
@@ -36,6 +52,77 @@ export function AdminUsersPage() {
     loadUsers();
   }, []);
 
+  function resetForm() {
+    setName("");
+    setEmail("");
+    setPassword("");
+    setRole("STAFF");
+    setFormError("");
+  }
+
+  function openForm() {
+    resetForm();
+    setSuccess("");
+    setShowForm(true);
+  }
+
+  function closeForm() {
+    if (creating) return;
+
+    resetForm();
+    setShowForm(false);
+  }
+
+  async function handleCreateUser(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    setFormError("");
+    setSuccess("");
+
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim().toLowerCase();
+
+    if (trimmedName.length < 2) {
+      setFormError("Informe um nome válido.");
+      return;
+    }
+
+    if (!trimmedEmail) {
+      setFormError("Informe o e-mail do usuário.");
+      return;
+    }
+
+    if (password.length < 10) {
+      setFormError("A senha deve ter pelo menos 10 caracteres.");
+      return;
+    }
+
+    setCreating(true);
+
+    try {
+      await createAdminUser({
+        name: trimmedName,
+        email: trimmedEmail,
+        password,
+        role,
+      });
+
+      setSuccess("Usuário criado com sucesso.");
+
+      resetForm();
+
+      await loadUsers();
+
+      setShowForm(false);
+    } catch (e) {
+      setFormError(
+        e instanceof Error ? e.message : "Não foi possível criar o usuário.",
+      );
+    } finally {
+      setCreating(false);
+    }
+  }
+
   if (admin?.role !== "ADMIN") {
     return null;
   }
@@ -54,13 +141,149 @@ export function AdminUsersPage() {
             </p>
           </div>
 
-          <a href="/admin/triagens">Voltar para triagens</a>
+          <div className="admin-top-actions">
+            <a href="/admin/triagens">Triagens</a>
+
+            <div className="admin-user">
+              <strong>{admin.name}</strong>
+
+              <small>Administrador</small>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                window.location.replace("/admin/triagens");
+              }}
+            >
+              Voltar
+            </button>
+          </div>
         </div>
+
+        <div className="admin-users-toolbar">
+          <div>
+            <h2>Usuários cadastrados</h2>
+
+            <p>
+              {users.length} {users.length === 1 ? "usuário" : "usuários"}{" "}
+              cadastrado
+              {users.length === 1 ? "" : "s"}.
+            </p>
+          </div>
+
+          <button type="button" onClick={openForm}>
+            + Novo usuário
+          </button>
+        </div>
+
+        {success && <p className="admin-success">{success}</p>}
+
+        {showForm && (
+          <section className="admin-user-form">
+            <div className="admin-user-form-header">
+              <div>
+                <span className="admin-eyebrow">Novo acesso</span>
+
+                <h2>Criar usuário</h2>
+              </div>
+
+              <button type="button" onClick={closeForm} disabled={creating}>
+                Fechar
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateUser}>
+              <div className="admin-form-grid">
+                <label>
+                  Nome
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                    placeholder="Nome completo"
+                    autoComplete="name"
+                    required
+                    minLength={2}
+                    maxLength={120}
+                    disabled={creating}
+                  />
+                </label>
+
+                <label>
+                  E-mail
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="usuario@exemplo.com"
+                    autoComplete="email"
+                    required
+                    disabled={creating}
+                  />
+                </label>
+
+                <label>
+                  Senha
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="Mínimo de 10 caracteres"
+                    autoComplete="new-password"
+                    required
+                    minLength={10}
+                    maxLength={200}
+                    disabled={creating}
+                  />
+                  <small>A senha deve possuir pelo menos 10 caracteres.</small>
+                </label>
+
+                <label>
+                  Perfil
+                  <select
+                    value={role}
+                    onChange={(event) =>
+                      setRole(event.target.value as AdminRole)
+                    }
+                    disabled={creating}
+                  >
+                    <option value="STAFF">Equipe (STAFF)</option>
+
+                    <option value="ADMIN">Administrador (ADMIN)</option>
+                  </select>
+                </label>
+              </div>
+
+              {formError && (
+                <p className="admin-error" role="alert">
+                  {formError}
+                </p>
+              )}
+
+              <div className="admin-form-actions">
+                <button type="button" onClick={closeForm} disabled={creating}>
+                  Cancelar
+                </button>
+
+                <button type="submit" disabled={creating}>
+                  {creating ? "Criando…" : "Criar usuário"}
+                </button>
+              </div>
+            </form>
+          </section>
+        )}
 
         {loading ? (
           <p>Carregando usuários…</p>
         ) : error ? (
           <p className="admin-error">{error}</p>
+        ) : users.length === 0 ? (
+          <div className="admin-empty">
+            <h2>Nenhum usuário encontrado</h2>
+
+            <p>Crie o primeiro usuário administrativo.</p>
+          </div>
         ) : (
           <div className="triage-list">
             {users.map((user) => (
