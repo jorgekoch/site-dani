@@ -51,15 +51,6 @@ export const triageRepository = {
     })
   },
 
-  findAdminByEmail(email: string) {
-    return prisma.adminUser.findUnique({
-      where: { email },
-      select: {
-        id: true,
-        active: true,
-      },
-    })
-  },
 
   updateStatusWithAudit(
     id: string,

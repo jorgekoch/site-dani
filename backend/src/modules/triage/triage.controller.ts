@@ -62,7 +62,7 @@ export const triageController = {
     const { status } = triageStatusUpdateSchema.parse(req.body)
 
     const actor = res.locals.admin as
-      | { sub: string }
+      | { id: string }
       | undefined
 
     if (!actor) {
@@ -72,7 +72,7 @@ export const triageController = {
     const submission = await triageService.updateStatus(
       id,
       status,
-      actor.sub,
+      actor.id,
     )
 
     res.json(submission)

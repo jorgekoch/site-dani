@@ -1,6 +1,5 @@
 import {
   NotFoundError,
-  UnauthorizedError,
 } from '../../core/errors/AppError.js'
 import type { TriageStatus } from '@prisma/client'
 import { triageRepository } from './triage.repository.js'
@@ -32,17 +31,8 @@ export const triageService = {
   async updateStatus(
     id: string,
     status: TriageStatus,
-    actorEmail: string,
+    actorId: string,
   ) {
-    const admin =
-      await triageRepository.findAdminByEmail(actorEmail)
-
-    if (!admin || !admin.active) {
-      throw new UnauthorizedError(
-        'Usuário administrativo não encontrado.',
-      )
-    }
-
     const existing =
       await triageRepository.findStatusById(id)
 
@@ -55,8 +45,8 @@ export const triageService = {
     return triageRepository.updateStatusWithAudit(
       id,
       status,
-      admin.id,
+      actorId,
       existing.status,
     )
-  },
+  }
 }
