@@ -1,0 +1,40 @@
+import { apiRequest, clearAdminToken, setAdminToken } from "./http";
+
+export type AdminRole = "ADMIN" | "STAFF";
+
+export type AdminUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: AdminRole;
+};
+
+export type AdminLoginResponse = {
+  token: string;
+  user: AdminUser;
+};
+
+export async function adminLogin(email: string, password: string) {
+  const response = await apiRequest<AdminLoginResponse>(
+    "/api/admin/auth/login",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    },
+  );
+
+  setAdminToken(response.token);
+
+  return response;
+}
+
+export function adminLogout() {
+  clearAdminToken();
+}
+
+export async function getAdminMe() {
+  return apiRequest<{ admin: AdminUser }>("/api/admin/auth/me");
+}
