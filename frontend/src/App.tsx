@@ -29,16 +29,21 @@ function AppContent() {
     return <AdminLoginPage />;
   }
 
+  const adminDetailMatch = /^\/admin\/triagens\/(.+)$/.exec(path);
+  if (adminDetailMatch) {
+    return (
+      <ProtectedRoute>
+        <AdminTriageDetailPage id={adminDetailMatch[1]} />
+      </ProtectedRoute>
+    );
+  }
+
   if (path === "/admin/triagens") {
     return (
       <ProtectedRoute>
         <AdminTriagePage />
       </ProtectedRoute>
     );
-  }
-
-  if (path === "/admin/login") {
-    return <AdminLoginPage />;
   }
 
   return (
