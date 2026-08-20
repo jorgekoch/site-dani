@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import { ZodError } from 'zod'
 import { Prisma } from '@prisma/client'
-import { AppError } from '../errors/AppError.js'
+import { AppError, InternalServerError } from '../errors/AppError.js'
 
 export function errorHandler(
   error: unknown,
@@ -12,6 +12,7 @@ export function errorHandler(
   if (error instanceof ZodError) {
     res.status(400).json({
       message: 'Confira os campos enviados.',
+      code: 'VALIDATION_ERROR',
       fields: error.flatten().fieldErrors,
     })
     return
@@ -45,8 +46,10 @@ export function errorHandler(
 
   console.error('Unhandled API error:', error)
 
-  res.status(500).json({
-    message: 'Não foi possível concluir a operação.',
-    code: 'INTERNAL_SERVER_ERROR',
+  const fallbackError = new InternalServerError()
+
+  res.status(fallbackError.statusCode).json({
+    message: fallbackError.message,
+    code: fallbackError.code,
   })
 }

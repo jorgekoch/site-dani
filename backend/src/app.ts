@@ -4,15 +4,10 @@ import cors from 'cors'
 import helmet from 'helmet'
 
 import { authRouter } from './modules/auth/auth.routes.js'
-import {
-  getTriage,
-  listTriage,
-  triageRouter,
-  updateTriageStatus,
-} from './modules/triage/triage.routes.js'
+import { triageRouter } from './modules/triage/triage.routes.js'
 import { requireAdminContext } from './middleware/requireAdminContext.js'
-import { notFound } from './middleware/notFound.js'
-import { errorHandler } from './middleware/errorHandler.js'
+import { notFound } from './core/middleware/notFound.js'
+import { errorHandler } from './core/middleware/errorHandler.js'
 
 export const app = express()
 
@@ -50,23 +45,7 @@ app.use('/api/admin', (_req, res, next) => {
 
 app.use('/api/admin/auth', authRouter)
 
-app.get(
-  '/api/admin/triage',
-  requireAdminContext,
-  listTriage,
-)
-
-app.get(
-  '/api/admin/triage/:id',
-  requireAdminContext,
-  getTriage,
-)
-
-app.patch(
-  '/api/admin/triage/:id/status',
-  requireAdminContext,
-  updateTriageStatus,
-)
+app.use('/api/admin/triage', triageRouter)
 
 app.use(notFound)
 

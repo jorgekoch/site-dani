@@ -46,3 +46,15 @@ export class ConflictError extends AppError {
     super(message, 409, 'CONFLICT')
   }
 }
+
+export class ValidationError extends AppError {
+  constructor(message = 'Dados inválidos.') {
+    super(message, 422, 'VALIDATION_ERROR')
+  }
+}
+
+export class InternalServerError extends AppError {
+  constructor(message = 'Não foi possível concluir a operação.') {
+    super(message, 500, 'INTERNAL_SERVER_ERROR')
+  }
+}

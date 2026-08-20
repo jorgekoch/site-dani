@@ -1,11 +1,16 @@
 import { NextFunction, Request, Response } from 'express'
 import { prisma } from '../lib/prisma.js'
 import { verifyAdminToken, AdminRole } from '../lib/auth.js'
+import {
+  ForbiddenError,
+  InternalServerError,
+  UnauthorizedError,
+} from '../core/errors/AppError.js'
 
 export async function requireAdminContext(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   const header = req.header('authorization')
   const token = header?.startsWith('Bearer ')
@@ -15,7 +20,7 @@ export async function requireAdminContext(
   const admin = token ? verifyAdminToken(token) : null
 
   if (!admin) {
-    res.status(401).json({ message: 'Não autorizado.' })
+    next(new UnauthorizedError('Não autorizado.'))
     return
   }
 
@@ -34,9 +39,7 @@ export async function requireAdminContext(
     })
 
     if (!user || !user.active) {
-      res.status(401).json({
-        message: 'Usuário não autorizado.',
-      })
+      next(new UnauthorizedError('Usuário não autorizado.'))
       return
     }
 
@@ -49,9 +52,7 @@ export async function requireAdminContext(
 
     next()
   } catch {
-    res.status(503).json({
-      message: 'Não foi possível validar o acesso agora.',
-    })
+    next(new InternalServerError('Não foi possível validar o acesso agora.'))
   }
 }
 
@@ -59,20 +60,14 @@ export function requireRole(...roles: AdminRole[]) {
   return (
     _req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     const admin = res.locals.admin as
       | { role: AdminRole }
       | undefined
 
-    if (
-      !admin ||
-      !roles.includes(admin.role)
-    ) {
-      res.status(403).json({
-        message:
-          'Você não tem permissão para esta ação.',
-      })
+    if (!admin || !roles.includes(admin.role)) {
+      next(new ForbiddenError('Você não tem permissão para esta ação.'))
       return
     }
 
