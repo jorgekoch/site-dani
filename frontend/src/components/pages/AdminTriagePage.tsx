@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { adminLogout } from "../../api/authApi";
-import { getAdminToken } from "../../api/http";
 
 import {
   listAdminTriages,
@@ -85,11 +84,6 @@ export function AdminTriagePage() {
   }
 
   useEffect(() => {
-    if (!getAdminToken()) {
-      window.location.replace("/admin/login");
-      return;
-    }
-
     load();
   }, [status]);
 
