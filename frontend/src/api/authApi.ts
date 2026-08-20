@@ -38,3 +38,15 @@ export function adminLogout() {
 export async function getAdminMe() {
   return apiRequest<{ admin: AdminUser }>("/api/admin/auth/me");
 }
+
+export type AdminUserListItem = {
+  id: string;
+  name: string;
+  email: string;
+  role: AdminRole;
+  active: boolean;
+};
+
+export async function listAdminUsers() {
+  return apiRequest<AdminUserListItem[]>("/api/admin/auth/users");
+}

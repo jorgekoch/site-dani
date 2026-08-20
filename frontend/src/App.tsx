@@ -17,9 +17,19 @@ import { AdminTriagePage } from "./components/pages/AdminTriagePage";
 import { AdminTriageDetailPage } from "./components/pages/AdminTriageDetailPage";
 
 import { ProtectedRoute } from "./auth/ProtectedRoute";
+import { RoleRoute } from "./auth/RoleRoute";
+import { AdminUsersPage } from "./components/pages/AdminUsersPage";
 
 function AppContent() {
   const path = window.location.pathname.replace(/\/$/, "") || "/";
+
+  if (path === "/admin/usuarios") {
+    return (
+      <RoleRoute roles={["ADMIN"]}>
+        <AdminUsersPage />
+      </RoleRoute>
+    );
+  }
 
   if (path === "/triagem") {
     return <TriagePage />;

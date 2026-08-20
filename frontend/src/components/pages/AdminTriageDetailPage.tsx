@@ -4,10 +4,18 @@ import {
   updateAdminTriageStatus,
   type TriageStatus,
 } from "../../api/triageApi";
+import { useAuth } from "../../auth/AuthContext";
 import "./AdminPortal.css";
 
-const statuses = ["NEW", "IN_REVIEW", "ACCEPTED", "DECLINED", "COMPLETED"];
-const labels: Record<string, string> = {
+const statuses: TriageStatus[] = [
+  "NEW",
+  "IN_REVIEW",
+  "ACCEPTED",
+  "DECLINED",
+  "COMPLETED",
+];
+
+const labels: Record<TriageStatus, string> = {
   NEW: "Nova",
   IN_REVIEW: "Em análise",
   ACCEPTED: "Aprovada",
@@ -16,38 +24,62 @@ const labels: Record<string, string> = {
 };
 
 export function AdminTriageDetailPage({ id }: { id: string }) {
-  const [item, setItem] = useState<any>(null),
-    [error, setError] = useState(""),
-    [loading, setLoading] = useState(true);
+  const [item, setItem] = useState<any>(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const { admin, logout } = useAuth();
+
   useEffect(() => {
     getAdminTriage(id)
       .then(setItem)
-      .catch((e) => setError(e.message))
+      .catch((e) =>
+        setError(
+          e instanceof Error ? e.message : "Não foi possível carregar a ficha.",
+        ),
+      )
       .finally(() => setLoading(false));
   }, [id]);
+
   async function change(status: TriageStatus) {
     try {
+      setError("");
+
       const next = await updateAdminTriageStatus(id, status);
+
       setItem(next);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Não foi possível atualizar.");
     }
   }
-  if (loading)
+
+  function handleLogout() {
+    logout();
+    window.location.replace("/admin/login");
+  }
+
+  if (loading) {
     return (
       <main className="admin-page">
-        <div className="admin-shell">Carregando ficha…</div>
+        <div className="admin-shell">
+          <p>Carregando ficha…</p>
+        </div>
       </main>
     );
-  if (error || !item)
+  }
+
+  if (error || !item) {
     return (
       <main className="admin-page">
         <div className="admin-shell">
           <p className="admin-error">{error || "Ficha não encontrada."}</p>
-          <a href="/admin/triagens">Voltar</a>
+
+          <a href="/admin/triagens">Voltar às triagens</a>
         </div>
       </main>
     );
+  }
+
   const fields = [
     ["Nome completo", item.fullName],
     ["Idade", item.age],
@@ -81,11 +113,60 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
     ["Condições de saúde", item.healthConditions?.join(", ")],
     ["Informações adicionais", item.additionalHealthInfo],
   ];
+
   return (
     <main className="admin-page">
       <div className="admin-shell">
         <div className="admin-top">
+          <div>
+            <span className="admin-eyebrow">Portal administrativo</span>
+
+            <h1>Ficha de triagem</h1>
+          </div>
+
+          <div className="admin-top-actions">
+            <a href="/admin/triagens">Triagens</a>
+
+            {admin?.role === "ADMIN" && <a href="/admin/usuarios">Usuários</a>}
+
+            <div className="admin-user">
+              <strong>{admin?.name}</strong>
+
+              <small>
+                {admin?.role === "ADMIN" ? "Administrador" : "Equipe"}
+              </small>
+            </div>
+
+            <button onClick={handleLogout}>Sair</button>
+          </div>
+        </div>
+
+        <div className="admin-detail-head">
+          <div>
+            <span className="admin-eyebrow">Ficha de triagem</span>
+
+            <h1>{item.fullName}</h1>
+
+            <p>
+              Recebida em {new Date(item.createdAt).toLocaleString("pt-BR")}
+            </p>
+          </div>
+
+          <select
+            value={item.status}
+            onChange={(e) => change(e.target.value as TriageStatus)}
+          >
+            {statuses.map((status) => (
+              <option key={status} value={status}>
+                {labels[status]}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="admin-detail-actions">
           <a href="/admin/triagens">← Voltar às triagens</a>
+
           <a
             href={`https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}`}
             target="_blank"
@@ -94,25 +175,7 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
             WhatsApp
           </a>
         </div>
-        <div className="admin-detail-head">
-          <div>
-            <span className="admin-eyebrow">Ficha de triagem</span>
-            <h1>{item.fullName}</h1>
-            <p>
-              Recebida em {new Date(item.createdAt).toLocaleString("pt-BR")}
-            </p>
-          </div>
-          <select
-            value={item.status}
-            onChange={(e) => change(e.target.value as TriageStatus)}
-          >
-            {statuses.map((s) => (
-              <option key={s} value={s}>
-                {labels[s]}
-              </option>
-            ))}
-          </select>
-        </div>
+
         <section className="admin-detail-grid">
           {fields
             .filter(
@@ -126,6 +189,7 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
               </article>
             ))}
         </section>
+
         {error && <p className="admin-error">{error}</p>}
       </div>
     </main>

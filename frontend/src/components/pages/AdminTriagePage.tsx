@@ -8,6 +8,8 @@ import {
   type TriageStatus,
 } from "../../api/triageApi";
 
+import { useAuth } from "../../auth/AuthContext";
+
 import "./AdminPortal.css";
 
 const statuses: TriageStatus[] = [
@@ -48,6 +50,7 @@ export function AdminTriagePage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { admin } = useAuth();
 
   async function load() {
     setLoading(true);
@@ -119,14 +122,26 @@ export function AdminTriagePage() {
             </p>
           </div>
 
-          <button
-            onClick={() => {
-              adminLogout();
-              window.location.replace("/admin/login");
-            }}
-          >
-            Sair
-          </button>
+          <div className="admin-top-actions">
+            {admin?.role === "ADMIN" && <a href="/admin/usuarios">Usuários</a>}
+
+            <div className="admin-user">
+              <strong>{admin?.name}</strong>
+
+              <small>
+                {admin?.role === "ADMIN" ? "Administrador" : "Equipe"}
+              </small>
+            </div>
+
+            <button
+              onClick={() => {
+                adminLogout();
+                window.location.replace("/admin/login");
+              }}
+            >
+              Sair
+            </button>
+          </div>
         </div>
 
         <div className="admin-dashboard">
