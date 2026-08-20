@@ -1,41 +1,42 @@
-import { Router } from 'express'
+import { Router } from "express";
 
-import { authController } from './auth.controller.js'
+import { authController } from "./auth.controller.js";
+
 import {
   requireAdminContext,
   requireRole,
-} from '../../middleware/requireAdminContext.js'
+} from "../../middleware/requireAdminContext.js";
 
-export const authRouter = Router()
+export const authRouter = Router();
 
-authRouter.post(
-  '/login',
-  authController.login,
-)
+authRouter.post("/login", authController.login);
 
-authRouter.get(
-  '/me',
-  requireAdminContext,
-  authController.me,
-)
+authRouter.get("/me", requireAdminContext, authController.me);
 
 authRouter.get(
-  '/users',
+  "/users",
   requireAdminContext,
-  requireRole('ADMIN'),
+  requireRole("ADMIN"),
   authController.listUsers,
-)
+);
 
 authRouter.post(
-  '/users',
+  "/users",
   requireAdminContext,
-  requireRole('ADMIN'),
+  requireRole("ADMIN"),
   authController.createUser,
-)
+);
 
 authRouter.patch(
-  '/users/:id/password',
+  "/users/:id/password",
   requireAdminContext,
-  requireRole('ADMIN'),
+  requireRole("ADMIN"),
   authController.resetPassword,
-)
+);
+
+authRouter.patch(
+  "/users/:id/status",
+  requireAdminContext,
+  requireRole("ADMIN"),
+  authController.updateUserStatus,
+);

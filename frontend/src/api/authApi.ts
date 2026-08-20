@@ -65,3 +65,12 @@ export async function createAdminUser(data: CreateAdminUserInput) {
     body: JSON.stringify(data),
   });
 }
+
+export async function updateAdminUserStatus(id: string, active: boolean) {
+  return apiRequest<AdminUserListItem>(`/api/admin/auth/users/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      active,
+    }),
+  });
+}

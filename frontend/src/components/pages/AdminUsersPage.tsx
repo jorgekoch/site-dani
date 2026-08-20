@@ -3,6 +3,7 @@ import { FormEvent, useEffect, useState } from "react";
 import {
   createAdminUser,
   listAdminUsers,
+  updateAdminUserStatus,
   type AdminRole,
   type AdminUserListItem,
 } from "../../api/authApi";
@@ -29,6 +30,8 @@ export function AdminUsersPage() {
   const [creating, setCreating] = useState(false);
   const [formError, setFormError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const [changingUserId, setChangingUserId] = useState<string | null>(null);
 
   async function loadUsers() {
     setLoading(true);
@@ -120,6 +123,53 @@ export function AdminUsersPage() {
       );
     } finally {
       setCreating(false);
+    }
+  }
+
+  async function handleToggleStatus(user: AdminUserListItem) {
+    const nextActive = !user.active;
+
+    const action = nextActive ? "ativar" : "desativar";
+
+    const confirmed = window.confirm(
+      `Deseja ${action} o usuário "${user.name}"?`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setChangingUserId(user.id);
+    setSuccess("");
+    setError("");
+
+    try {
+      const updated = await updateAdminUserStatus(user.id, nextActive);
+
+      setUsers((currentUsers) =>
+        currentUsers.map((currentUser) =>
+          currentUser.id === updated.id
+            ? {
+                ...currentUser,
+                ...updated,
+              }
+            : currentUser,
+        ),
+      );
+
+      setSuccess(
+        nextActive
+          ? "Usuário ativado com sucesso."
+          : "Usuário desativado com sucesso.",
+      );
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Não foi possível alterar o status do usuário.",
+      );
+    } finally {
+      setChangingUserId(null);
     }
   }
 
@@ -286,23 +336,48 @@ export function AdminUsersPage() {
           </div>
         ) : (
           <div className="triage-list">
-            {users.map((user) => (
-              <article className="triage-row" key={user.id}>
-                <div>
-                  <span className="triage-status">
-                    {user.active ? "Ativo" : "Inativo"}
-                  </span>
+            {users.map((user) => {
+              const isCurrentAdmin = user.id === admin.id;
 
-                  <h2>{user.name}</h2>
+              const changing = changingUserId === user.id;
 
-                  <p>{user.email}</p>
+              return (
+                <article className="triage-row" key={user.id}>
+                  <div>
+                    <span className="triage-status">
+                      {user.active ? "Ativo" : "Inativo"}
+                    </span>
 
-                  <small>
-                    Perfil: {user.role === "ADMIN" ? "Administrador" : "Equipe"}
-                  </small>
-                </div>
-              </article>
-            ))}
+                    <h2>{user.name}</h2>
+
+                    <p>{user.email}</p>
+
+                    <small>
+                      Perfil:{" "}
+                      {user.role === "ADMIN" ? "Administrador" : "Equipe"}
+                    </small>
+                  </div>
+
+                  <div className="triage-row-actions">
+                    {isCurrentAdmin ? (
+                      <small>Sua conta</small>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleToggleStatus(user)}
+                        disabled={changing}
+                      >
+                        {changing
+                          ? "Alterando…"
+                          : user.active
+                            ? "Desativar"
+                            : "Ativar"}
+                      </button>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </div>
