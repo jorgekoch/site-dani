@@ -42,5 +42,8 @@
     "ts-jest": "^29.4.12",
     "tsx": "^4.19.2",
     "typescript": "^5.9.2"
+  },
+  "overrides": {
+    "deepmerge-ts": "8.0.0"
   }
 }
