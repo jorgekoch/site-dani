@@ -10,6 +10,7 @@ import {
 import { useAuth } from "../../auth/AuthContext";
 import { formatWhatsapp } from "../../utils/formatWhatsapp";
 import "./AdminPortal.css";
+import "./AdminArchivePage.css";
 
 type GroupedArchive = Record<string, ArchivedTriage[]>;
 
@@ -56,7 +57,9 @@ export function AdminArchivePage() {
 
   const grouped = useMemo(() => {
     return filtered.reduce<GroupedArchive>((acc, item) => {
-      const date = item.archivedAt ? new Date(item.archivedAt) : new Date(item.createdAt);
+      const date = item.archivedAt
+        ? new Date(item.archivedAt)
+        : new Date(item.createdAt);
       const year = String(date.getFullYear());
 
       if (!acc[year]) {
@@ -69,6 +72,7 @@ export function AdminArchivePage() {
   }, [filtered]);
 
   const years = Object.keys(grouped).sort((a, b) => Number(b) - Number(a));
+  const hasSearch = Boolean(search.trim());
 
   async function restore(id: string) {
     const confirmed = window.confirm(
@@ -83,7 +87,9 @@ export function AdminArchivePage() {
       await restoreAdminTriage(id);
       setItems((current) => current.filter((item) => item.id !== id));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Não foi possível restaurar a ficha.");
+      setError(
+        e instanceof Error ? e.message : "Não foi possível restaurar a ficha.",
+      );
     } finally {
       setRestoringId(null);
     }
@@ -122,7 +128,20 @@ export function AdminArchivePage() {
           </div>
         </div>
 
-        <div className="admin-toolbar">
+        <section className="archive-overview" aria-label="Resumo do arquivo">
+          <div>
+            <span className="admin-eyebrow">Histórico preservado</span>
+            <strong>{items.length}</strong>
+            <small>{items.length === 1 ? "ficha arquivada" : "fichas arquivadas"}</small>
+          </div>
+
+          <p>
+            As fichas ficam fora da fila ativa, mas continuam disponíveis para
+            consulta e podem ser restauradas quando necessário.
+          </p>
+        </section>
+
+        <div className="admin-toolbar archive-toolbar">
           <div className="admin-search">
             <input
               aria-label="Buscar ficha arquivada"
@@ -147,55 +166,90 @@ export function AdminArchivePage() {
         ) : error ? (
           <p className="admin-error">{error}</p>
         ) : filtered.length === 0 ? (
-          <div className="admin-empty">
-            <h2>Nenhuma ficha arquivada</h2>
+          <div className="admin-empty archive-empty">
+            <span className="admin-eyebrow">Arquivo</span>
+            <h2>{hasSearch ? "Nenhum resultado encontrado" : "Nenhuma ficha arquivada"}</h2>
             <p>
-              {search
-                ? "Nenhuma ficha arquivada corresponde à busca."
-                : "As fichas arquivadas aparecerão aqui, organizadas por ano."}
+              {hasSearch
+                ? "Tente buscar por outro nome, WhatsApp ou profissão."
+                : "Quando uma ficha sair da fila ativa, ela aparecerá aqui organizada pelo ano do arquivamento."}
             </p>
+            {hasSearch && (
+              <button type="button" onClick={() => setSearch("")}>
+                Limpar busca
+              </button>
+            )}
           </div>
         ) : (
-          years.map((year) => (
-            <section key={year} className="admin-detail-section">
-              <div className="admin-detail-section-header">
-                <h2>{year}</h2>
-                <span>{grouped[year].length} {grouped[year].length === 1 ? "ficha" : "fichas"}</span>
-              </div>
+          <div className="archive-years">
+            <div className="archive-results-summary">
+              <span>
+                <strong>{filtered.length}</strong>{" "}
+                {filtered.length === 1 ? "ficha encontrada" : "fichas encontradas"}
+              </span>
+              <small>
+                {years.length} {years.length === 1 ? "ano" : "anos"} no arquivo
+              </small>
+            </div>
 
-              <div className="triage-list">
-                {grouped[year].map((item) => (
-                  <article className="triage-row" key={item.id}>
-                    <div>
-                      <span className="triage-status">Arquivada</span>
-                      <h2>{item.fullName}</h2>
-                      <p>
-                        {item.profession} · {item.age} anos · {formatWhatsapp(item.whatsapp)}
-                      </p>
-                      <p>{item.mainComplaint}</p>
-                      <small>
-                        Arquivada em {new Date(item.archivedAt).toLocaleDateString("pt-BR")}
-                      </small>
-                    </div>
+            {years.map((year, yearIndex) => (
+              <details
+                key={year}
+                className="archive-year"
+                open={hasSearch || yearIndex === 0 ? true : undefined}
+              >
+                <summary className="archive-year-summary">
+                  <div>
+                    <span className="admin-eyebrow">Ano de arquivamento</span>
+                    <strong>{year}</strong>
+                  </div>
 
-                    <div className="triage-row-actions">
-                      <Link to={`/admin/triagens/${item.id}`}>Ver ficha</Link>
+                  <div className="archive-year-meta">
+                    <span>
+                      {grouped[year].length}{" "}
+                      {grouped[year].length === 1 ? "ficha" : "fichas"}
+                    </span>
+                    <span className="archive-year-chevron" aria-hidden="true">⌄</span>
+                  </div>
+                </summary>
 
-                      {admin?.role === "ADMIN" && (
-                        <button
-                          type="button"
-                          onClick={() => restore(item.id)}
-                          disabled={restoringId === item.id}
-                        >
-                          {restoringId === item.id ? "Restaurando…" : "Restaurar"}
-                        </button>
-                      )}
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-          ))
+                <div className="archive-year-body">
+                  <div className="triage-list">
+                    {grouped[year].map((item) => (
+                      <article className="triage-row archive-row" key={item.id}>
+                        <div>
+                          <span className="triage-status">Arquivada</span>
+                          <h2>{item.fullName}</h2>
+                          <p>
+                            {item.profession} · {item.age} anos · {formatWhatsapp(item.whatsapp)}
+                          </p>
+                          <p>{item.mainComplaint}</p>
+                          <small>
+                            Arquivada em{" "}
+                            {new Date(item.archivedAt).toLocaleDateString("pt-BR")}
+                          </small>
+                        </div>
+
+                        <div className="triage-row-actions archive-row-actions">
+                          <Link to={`/admin/triagens/${item.id}`}>Ver ficha</Link>
+
+                          {admin?.role === "ADMIN" && (
+                            <button
+                              type="button"
+                              onClick={() => restore(item.id)}
+                              disabled={restoringId === item.id}
+                            >
+                              {restoringId === item.id ? "Restaurando…" : "Restaurar"}
+                            </button>
+                          )}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              </details>
+            ))}
+          </div>
         )}
       </div>
     </main>
