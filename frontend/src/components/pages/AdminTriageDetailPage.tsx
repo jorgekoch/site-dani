@@ -419,20 +419,6 @@ export function AdminTriageDetailPage() {
           <Link to={isArchived ? "/admin/arquivo" : "/admin/triagens"}>
             ← {isArchived ? "Voltar ao arquivo" : "Voltar às triagens"}
           </Link>
-
-          {admin?.role === "ADMIN" && (
-            <button
-              type="button"
-              onClick={toggleArchive}
-              disabled={changingArchive}
-            >
-              {changingArchive
-                ? "Processando…"
-                : isArchived
-                  ? "Restaurar ficha"
-                  : "Arquivar ficha"}
-            </button>
-          )}
         </div>
 
         <section className="admin-detail-sections">
@@ -562,6 +548,22 @@ export function AdminTriageDetailPage() {
             </p>
           )}
         </section>
+
+        {admin?.role === "ADMIN" && (
+          <div className="admin-detail-actions">
+            <button
+              type="button"
+              onClick={toggleArchive}
+              disabled={changingArchive}
+            >
+              {changingArchive
+                ? "Processando…"
+                : isArchived
+                  ? "Restaurar ficha"
+                  : "Arquivar ficha"}
+            </button>
+          </div>
+        )}
 
         {error && <p className="admin-error">{error}</p>}
       </div>
