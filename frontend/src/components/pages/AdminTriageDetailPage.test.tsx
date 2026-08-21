@@ -131,7 +131,9 @@ describe('AdminTriageDetailPage', () => {
   it('mantém o histórico de alterações recolhido por padrão', async () => {
     const { container } = renderPage()
 
-    expect(await screen.findByText('Maria da Rosa')).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Maria da Rosa', level: 1 }),
+    ).toBeInTheDocument()
 
     const history = container.querySelector('details.admin-history-accordion')
     expect(history).toBeInTheDocument()
@@ -143,7 +145,9 @@ describe('AdminTriageDetailPage', () => {
     getAdminTriageMock.mockResolvedValue(archivedTriage)
     renderPage()
 
-    expect(await screen.findByText('Maria da Rosa')).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Maria da Rosa', level: 1 }),
+    ).toBeInTheDocument()
 
     expect(screen.getByRole('combobox')).toBeDisabled()
     expect(screen.getByRole('textbox')).toBeDisabled()
@@ -156,7 +160,9 @@ describe('AdminTriageDetailPage', () => {
   it('exibe a ação de arquivar para administrador em ficha ativa', async () => {
     renderPage()
 
-    expect(await screen.findByText('Maria da Rosa')).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Maria da Rosa', level: 1 }),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: /arquivar ficha/i }),
     ).toBeInTheDocument()
@@ -172,7 +178,9 @@ describe('AdminTriageDetailPage', () => {
 
     renderPage()
 
-    expect(await screen.findByText('Maria da Rosa')).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Maria da Rosa', level: 1 }),
+    ).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: /arquivar ficha/i }),
     ).not.toBeInTheDocument()
