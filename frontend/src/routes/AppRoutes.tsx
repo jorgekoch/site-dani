@@ -16,6 +16,7 @@ import { AdminLoginPage } from "../components/pages/AdminLoginPage";
 import { AdminTriagePage } from "../components/pages/AdminTriagePage";
 import { AdminTriageDetailPage } from "../components/pages/AdminTriageDetailPage";
 import { AdminUsersPage } from "../components/pages/AdminUsersPage";
+import { AdminArchivePage } from "../components/pages/AdminArchivePage";
 
 import { ProtectedRoute } from "../auth/ProtectedRoute";
 import { RoleRoute } from "../auth/RoleRoute";
@@ -48,6 +49,15 @@ export function AppRoutes() {
         element={
           <ProtectedRoute>
             <AdminTriagePage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/arquivo"
+        element={
+          <ProtectedRoute>
+            <AdminArchivePage />
           </ProtectedRoute>
         }
       />
