@@ -11,7 +11,7 @@ export function FaqSection() {
     <section className="faq section" id="faq">
       <div className="container faq-grid">
         <div>
-          <span className="section-kicker">06 — Dúvidas</span>
+          <span className="section-kicker">07 — Dúvidas</span>
           <h2>Antes de vir,<br /><em>pode perguntar.</em></h2>
           <p>Se ainda ficou alguma dúvida sobre o atendimento, fale comigo pelo WhatsApp.</p>
           <a className="button button-outline" href={siteLinks.whatsapp} target="_blank" rel="noreferrer"><MessageCircle size={18} /> Falar pelo WhatsApp</a>

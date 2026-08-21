@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         AdminRole  @default(STAFF)
+  active       Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  auditLogs    AuditLog[]
+
+  @@index([active, role])
+}
+
+model TriageSubmission {
+  id                        String          @id @default(cuid())
+  status                    TriageStatus    @default(NEW)
+  fullName                  String
+  age                       Int
+  profession                String
+  whatsapp                  String
+  treatmentReason           TreatmentReason
+  injuryDescription         String?
+  injuryDuration            String?
+  medicalReferral           Boolean
+  medicalDiagnosis          String?
+  mainComplaint             String
+  painLocation              String
+  painRadiates              Boolean?
+  painRadiatesWhere         String?
+  painLevel                 Int?
+  physicalActivity          Boolean
+  physicalActivityType      String?
+  sportsInjury              Boolean?
+  sportsInjuryDetails       String?
+  complementaryExams        Boolean
+  complementaryExamsDetails String?
+  surgery                   Boolean
+  surgeryDetails            String?
+  metalImplant              Boolean
+  metalImplantLocation      String?
+  medication                Boolean
+  medicationDetails         String?
+  healthConditions          String[]
+  additionalHealthInfo      String?
+  internalNotes        String?
+  consentAccepted           Boolean
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+  auditLogs                 AuditLog[]
+
+  @@index([status, createdAt])
+  @@index([whatsapp])
+}
+
+model AuditLog {
+  id        String            @id @default(cuid())
+  action    String
+  details   String?
+  createdAt DateTime          @default(now())
+  actorId   String
+  triageId  String?
+  actor     AdminUser         @relation(fields: [actorId], references: [id])
+  triage    TriageSubmission? @relation(fields: [triageId], references: [id])
+
+  @@index([actorId, createdAt])
+  @@index([triageId, createdAt])
+}
+
+enum TriageStatus {
+  NEW
+  IN_REVIEW
+  ACCEPTED
+  DECLINED
+  COMPLETED
+}
+
+enum TreatmentReason {
+  INJURY_RECOVERY
+  HEALTH_MAINTENANCE
+}
+
+enum AdminRole {
+  ADMIN
+  STAFF
+}
