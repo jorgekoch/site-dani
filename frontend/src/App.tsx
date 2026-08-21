@@ -10,6 +10,7 @@ import { FaqSection } from "./components/sections/FaqSection";
 import { HeroSection } from "./components/sections/HeroSection";
 import { ProcessSection } from "./components/sections/ProcessSection";
 import { SpecialtiesSection } from "./components/sections/SpecialtiesSection";
+import { TestimonialsSection } from "./components/sections/TestimonialsSection";
 
 import { TriagePage } from "./components/pages/TriagePage";
 import { AdminLoginPage } from "./components/pages/AdminLoginPage";
@@ -22,6 +23,22 @@ import { AdminUsersPage } from "./components/pages/AdminUsersPage";
 
 function AppContent() {
   const path = window.location.pathname.replace(/\/$/, "") || "/";
+
+  if (path === "/") {
+    return (
+      <SiteLayout>
+        <HeroSection />
+        <AboutSection />
+        <ProcessSection />
+        <SpecialtiesSection />
+        <CredentialsSection />
+        <ClinicSection />
+        <TestimonialsSection />
+        <FaqSection />
+        <CtaSection />
+      </SiteLayout>
+    );
+  }
 
   if (path === "/admin/usuarios") {
     return (
@@ -64,6 +81,7 @@ function AppContent() {
       <SpecialtiesSection />
       <CredentialsSection />
       <ClinicSection />
+      <TestimonialsSection />
       <FaqSection />
       <CtaSection />
     </SiteLayout>

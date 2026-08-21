@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useAuth } from "./AuthContext";
 import type { AdminRole } from "../api/authApi";
 
@@ -9,6 +9,13 @@ type RoleRouteProps = {
 
 export function RoleRoute({ roles, children }: RoleRouteProps) {
   const { admin, loading } = useAuth();
+  const pathname = window.location.pathname.replace(/\/$/, "") || "/";
+
+  useEffect(() => {
+    if (!loading && !admin && pathname !== "/") {
+      window.location.replace("/admin/login");
+    }
+  }, [loading, admin, pathname]);
 
   if (loading) {
     return (
@@ -20,12 +27,11 @@ export function RoleRoute({ roles, children }: RoleRouteProps) {
     );
   }
 
-  if (!admin) {
-    window.location.replace("/admin/login");
+  if (!admin && pathname !== "/") {
     return null;
   }
 
-  if (!roles.includes(admin.role)) {
+  if (!roles.includes(admin?.role ?? "STAFF")) {
     return (
       <main className="admin-page">
         <div className="admin-shell">
