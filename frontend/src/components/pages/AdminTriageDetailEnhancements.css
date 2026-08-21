@@ -11,7 +11,7 @@
   gap: 24px;
   padding: 24px;
   cursor: pointer;
-  background: linear-gradient(135deg, rgba(216, 185, 118, 0.06), rgba(255, 255, 255, 0.01));
+  background: rgba(255, 255, 255, 0.015);
   transition: background 180ms ease;
 }
 
@@ -20,7 +20,7 @@
 }
 
 .admin-history-summary:hover {
-  background: linear-gradient(135deg, rgba(216, 185, 118, 0.1), rgba(255, 255, 255, 0.025));
+  background: rgba(255, 255, 255, 0.035);
 }
 
 .admin-history-summary h2 {
@@ -40,7 +40,7 @@
   align-items: center;
   gap: 12px;
   flex-shrink: 0;
-  color: #d8b976;
+  color: #f1eee9;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -52,10 +52,10 @@
   width: 34px;
   height: 34px;
   place-items: center;
-  border: 1px solid rgba(216, 185, 118, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 999px;
-  background: rgba(216, 185, 118, 0.07);
-  color: #e9d2a0;
+  background: rgba(255, 255, 255, 0.035);
+  color: #f1eee9;
   font-size: 1.2rem;
   line-height: 1;
   transition: transform 180ms ease, background 180ms ease;
@@ -63,7 +63,7 @@
 
 .admin-history-accordion[open] .admin-history-chevron {
   transform: rotate(180deg);
-  background: rgba(216, 185, 118, 0.14);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .admin-history-accordion[open] .admin-history-summary {
@@ -83,10 +83,8 @@
   margin-top: 42px;
   padding: 28px 30px;
   overflow: hidden;
-  border: 1px solid rgba(216, 185, 118, 0.26);
-  background:
-    radial-gradient(circle at 100% 0%, rgba(216, 185, 118, 0.12), transparent 36%),
-    linear-gradient(135deg, #111115, #0c0c0f);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0e0e11;
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
 }
 
@@ -95,18 +93,16 @@
   position: absolute;
   inset: 0 auto 0 0;
   width: 3px;
-  background: linear-gradient(180deg, #e3c985, #8d7442);
+  background: #f1eee9;
 }
 
 .admin-archive-action.is-archived {
-  border-color: rgba(116, 201, 143, 0.24);
-  background:
-    radial-gradient(circle at 100% 0%, rgba(116, 201, 143, 0.09), transparent 36%),
-    linear-gradient(135deg, #101412, #0c0e0d);
+  border-color: rgba(255, 255, 255, 0.1);
+  background: #0e0e11;
 }
 
 .admin-archive-action.is-archived::before {
-  background: linear-gradient(180deg, #9fd3ad, #527d5d);
+  background: #f1eee9;
 }
 
 .admin-archive-action-copy {
@@ -136,19 +132,19 @@
   min-width: 210px;
   gap: 4px;
   padding: 14px 20px;
-  border: 1px solid #e4cf9d;
-  background: linear-gradient(135deg, #f1eee9, #dac89d);
-  color: #11100e;
+  border: 1px solid #f1eee9;
+  background: #f1eee9;
+  color: #08080a;
   text-align: left;
   font: inherit;
   cursor: pointer;
-  box-shadow: 0 10px 28px rgba(216, 185, 118, 0.12);
-  transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+  transition: transform 180ms ease, opacity 180ms ease, background 180ms ease;
 }
 
 .admin-archive-action.is-archived .admin-archive-action-button {
-  border-color: #b9d7bf;
-  background: linear-gradient(135deg, #e6f0e8, #b9d7bf);
+  border-color: #f1eee9;
+  background: #f1eee9;
+  color: #08080a;
 }
 
 .admin-archive-action-button span {
@@ -157,18 +153,18 @@
 }
 
 .admin-archive-action-button small {
-  color: rgba(17, 16, 14, 0.62);
+  color: rgba(8, 8, 10, 0.62);
   font-size: 0.72rem;
 }
 
 .admin-archive-action-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 16px 34px rgba(216, 185, 118, 0.18);
+  background: #ffffff;
 }
 
 .admin-archive-action-button:focus-visible,
 .admin-history-summary:focus-visible {
-  outline: 2px solid #e9d2a0;
+  outline: 2px solid #f1eee9;
   outline-offset: 3px;
 }
 
