@@ -16,7 +16,7 @@ export const triageService = {
     return triageRepository.list(status)
   },
 
-  async getById(id: string) {
+  async getById(id: string, actorId?: string) {
     const submission = await triageRepository.findById(id)
 
     if (!submission) {
@@ -25,7 +25,28 @@ export const triageService = {
       )
     }
 
+    if (actorId) {
+      await triageRepository.createAuditLog({
+        actorId,
+        triageId: submission.id,
+        action: 'TRIAGE_VIEWED',
+        details: 'Visualização da ficha de triagem',
+      }).catch(() => undefined)
+    }
+
     return submission
+  },
+
+  async cleanupExpiredSubmissions(retentionDays: number) {
+    const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000)
+    const expired = await triageRepository.findExpiredForRetention(cutoff)
+    const ids = expired.map((item) => item.id)
+    const count = await triageRepository.anonymizeExpired(ids)
+
+    return {
+      count,
+      retentionDays,
+    }
   },
 
   async updateStatus(

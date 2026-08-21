@@ -7,15 +7,40 @@ import {
   UnauthorizedError,
 } from '../core/errors/AppError.js'
 
+export function extractAdminTokenFromRequest(req: Request) {
+  const header = req.header('authorization')
+  const bearerToken = header?.startsWith('Bearer ')
+    ? header.slice(7)
+    : null
+
+  if (bearerToken) {
+    return bearerToken
+  }
+
+  const cookieHeader = req.header('cookie')
+  if (!cookieHeader) {
+    return null
+  }
+
+  const cookie = cookieHeader
+    .split(';')
+    .map((item) => item.trim())
+    .find((item) => item.startsWith('dani_admin_token='))
+
+  if (!cookie) {
+    return null
+  }
+
+  const rawValue = cookie.slice('dani_admin_token='.length)
+  return rawValue ? decodeURIComponent(rawValue) : null
+}
+
 export async function requireAdminContext(
   req: Request,
   res: Response,
   next: NextFunction,
 ) {
-  const header = req.header('authorization')
-  const token = header?.startsWith('Bearer ')
-    ? header.slice(7)
-    : null
+  const token = extractAdminTokenFromRequest(req)
 
   const admin = token ? verifyAdminToken(token) : null
 
@@ -27,7 +52,7 @@ export async function requireAdminContext(
   try {
     const user = await prisma.adminUser.findUnique({
       where: {
-        email: admin.sub.toLowerCase(),
+        id: admin.sub,
       },
       select: {
         id: true,
@@ -49,6 +74,14 @@ export async function requireAdminContext(
       email: user.email,
       role: user.role,
     }
+
+    await prisma.auditLog.create({
+      data: {
+        actorId: user.id,
+        action: 'ADMIN_ACCESS_GRANTED',
+        details: 'Acesso concedido ao portal administrativo',
+      },
+    }).catch(() => undefined)
 
     next()
   } catch {

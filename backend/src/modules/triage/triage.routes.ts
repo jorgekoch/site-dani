@@ -24,6 +24,13 @@ triageRouter.get(
   triageController.get,
 )
 
+triageRouter.post(
+  '/cleanup-retention',
+  requireAdminContext,
+  requireRole('ADMIN'),
+  triageController.cleanupRetention,
+)
+
 triageRouter.patch(
   '/:id/status',
   requireAdminContext,

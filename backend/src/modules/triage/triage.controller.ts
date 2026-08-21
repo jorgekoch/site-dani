@@ -46,9 +46,28 @@ export const triageController = {
       )
     }
 
-    const submission = await triageService.getById(id)
+    const actor = res.locals.admin as
+      | { id: string }
+      | undefined
+
+    if (!actor) {
+      throw new UnauthorizedError('Não autorizado.')
+    }
+
+    const submission = await triageService.getById(id, actor.id)
 
     res.json(submission)
+  }),
+
+  cleanupRetention: asyncHandler(async (_req: Request, res: Response) => {
+    const retentionDays = Number(process.env.DATA_RETENTION_DAYS ?? 90)
+
+    const result = await triageService.cleanupExpiredSubmissions(retentionDays)
+
+    res.json({
+      message: 'Limpeza de retenção concluída.',
+      ...result,
+    })
   }),
 
   updateStatus: asyncHandler(async (req: Request, res: Response) => {

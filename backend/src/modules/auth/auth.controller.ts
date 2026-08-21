@@ -22,6 +22,14 @@ export const authController = {
 
     const result = await authService.login(input, rateLimitKey);
 
+    res.cookie("dani_admin_token", result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 8 * 60 * 60 * 1000,
+      path: "/",
+    });
+
     res.json(result);
   }),
 
@@ -38,6 +46,8 @@ export const authController = {
     if (token) {
       revokeAdminToken(token);
     }
+
+    res.clearCookie("dani_admin_token", { path: "/" });
 
     res.json({ message: "Logout realizado com sucesso." });
   }),

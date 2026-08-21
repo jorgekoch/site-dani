@@ -135,7 +135,7 @@ export const authService = {
     clearFailures(rateLimitKey);
 
     return {
-      token: issueAdminToken(user.email, user.role),
+      token: issueAdminToken(user.id, user.role),
 
       user: {
         id: user.id,

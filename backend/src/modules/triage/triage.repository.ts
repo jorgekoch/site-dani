@@ -58,6 +58,71 @@ export const triageRepository = {
     })
   },
 
+  createAuditLog(data: {
+    action: string
+    details?: string | null
+    actorId: string
+    triageId?: string | null
+  }) {
+    return prisma.auditLog.create({
+      data,
+    })
+  },
+
+  findExpiredForRetention(cutoff: Date) {
+    return prisma.triageSubmission.findMany({
+      where: {
+        createdAt: {
+          lt: cutoff,
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
+  },
+
+  anonymizeExpired(ids: string[]) {
+    if (ids.length === 0) {
+      return 0
+    }
+
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.triageSubmission.updateMany({
+        where: {
+          id: {
+            in: ids,
+          },
+        },
+        data: {
+          fullName: 'Dado removido',
+          whatsapp: '00000000000',
+          age: 0,
+          profession: 'Dados removidos',
+          medicalDiagnosis: null,
+          mainComplaint: 'Dados removidos por retenção',
+          painLocation: 'Dados removidos por retenção',
+          painRadiatesWhere: null,
+          painLevel: null,
+          injuryDescription: null,
+          injuryDuration: null,
+          physicalActivityType: null,
+          sportsInjuryDetails: null,
+          complementaryExamsDetails: null,
+          surgeryDetails: null,
+          metalImplantLocation: null,
+          medicationDetails: null,
+          healthConditions: ['Dados removidos'],
+          additionalHealthInfo: null,
+          internalNotes: 'Dados removidos por retenção',
+          consentAccepted: false,
+        },
+      })
+
+      return updated.count
+    })
+  },
+
   findStatusById(id: string) {
     return prisma.triageSubmission.findUnique({
       where: { id },
