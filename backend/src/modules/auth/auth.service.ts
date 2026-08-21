@@ -21,30 +21,33 @@ import type {
 
 const attempts = new Map<string, { count: number; resetAt: number }>();
 
-function isRateLimited(key: string) {
+const adminLoginWindowMs = 15 * 60_000;
+const adminLoginMaxAttempts = 5;
+
+function isRateLimitedForLogin(key: string) {
   const now = Date.now();
   const current = attempts.get(key);
 
   if (!current || current.resetAt <= now) {
     attempts.set(key, {
       count: 0,
-      resetAt: now + 15 * 60_000,
+      resetAt: now + adminLoginWindowMs,
     });
 
     return false;
   }
 
-  return current.count >= 5;
+  return current.count >= adminLoginMaxAttempts;
 }
 
-function registerFailure(key: string) {
+function registerLoginFailure(key: string) {
   const now = Date.now();
   const current = attempts.get(key);
 
   if (!current || current.resetAt <= now) {
     attempts.set(key, {
       count: 1,
-      resetAt: now + 15 * 60_000,
+      resetAt: now + adminLoginWindowMs,
     });
 
     return;
@@ -53,8 +56,40 @@ function registerFailure(key: string) {
   current.count += 1;
 }
 
-function clearFailures(key: string) {
+function clearLoginFailures(key: string) {
   attempts.delete(key);
+}
+
+export function validateUserStatusChange({
+  targetRole,
+  nextActive,
+  activeAdminsCount,
+}: {
+  targetRole: "ADMIN" | "STAFF";
+  nextActive: boolean;
+  activeAdminsCount: number;
+}) {
+  if (
+    targetRole === "ADMIN" &&
+    !nextActive &&
+    activeAdminsCount <= 1
+  ) {
+    throw new ConflictError(
+      "Não é possível desativar o último administrador ativo.",
+    );
+  }
+}
+
+function isRateLimited(key: string) {
+  return isRateLimitedForLogin(key);
+}
+
+function registerFailure(key: string) {
+  registerLoginFailure(key);
+}
+
+function clearFailures(key: string) {
+  clearLoginFailures(key);
 }
 
 export const authService = {
@@ -115,7 +150,7 @@ export const authService = {
     return authRepository.listUsers();
   },
 
-  async createUser(input: CreateUserInput) {
+  async createUser(input: CreateUserInput, actorId?: string) {
     const email = input.email.toLowerCase();
 
     try {
@@ -125,6 +160,14 @@ export const authService = {
         passwordHash: hashPassword(input.password),
         role: input.role,
       });
+
+      if (actorId) {
+        await authRepository.createAuditLog({
+          actorId,
+          action: "ADMIN_USER_CREATED",
+          details: `Usuário criado: ${user.name} (${user.role})`,
+        });
+      }
 
       return {
         id: user.id,
@@ -142,14 +185,27 @@ export const authService = {
     }
   },
 
-  async resetPassword(id: string, password: string) {
+  async resetPassword(id: string, password: string, actorId?: string) {
     const user = await authRepository.findUserById(id);
 
     if (!user) {
       throw new NotFoundError("Usuário não encontrado.");
     }
 
-    return authRepository.updatePassword(id, hashPassword(password));
+    const updatedUser = await authRepository.updatePassword(
+      id,
+      hashPassword(password),
+    );
+
+    if (actorId) {
+      await authRepository.createAuditLog({
+        actorId,
+        action: "ADMIN_PASSWORD_RESET",
+        details: `Senha redefinida para ${user.name}`,
+      });
+    }
+
+    return updatedUser;
   },
 
   async updateUserStatus(
@@ -167,6 +223,24 @@ export const authService = {
       throw new ConflictError("Você não pode desativar o próprio usuário.");
     }
 
-    return authRepository.updateActive(id, input.active);
+    if (user.role === "ADMIN" && !input.active) {
+      const activeAdminsCount = await authRepository.countActiveAdmins();
+
+      validateUserStatusChange({
+        targetRole: user.role,
+        nextActive: input.active,
+        activeAdminsCount,
+      });
+    }
+
+    const updatedUser = await authRepository.updateActive(id, input.active);
+
+    await authRepository.createAuditLog({
+      actorId,
+      action: "ADMIN_USER_STATUS_CHANGED",
+      details: `Usuário ${user.name} ${input.active ? "ativado" : "desativado"}`,
+    });
+
+    return updatedUser;
   },
 };

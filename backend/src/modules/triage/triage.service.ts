@@ -53,6 +53,7 @@ export const triageService = {
   async updateInternalNotes(
     id: string,
     internalNotes: string,
+    actorId: string,
   ) {
     const existing = await triageRepository.findById(id)
 
@@ -62,9 +63,10 @@ export const triageService = {
       )
     }
 
-    return triageRepository.updateInternalNotes(
+    return triageRepository.updateInternalNotesWithAudit(
       id,
       internalNotes,
+      actorId,
     )
   },
 }

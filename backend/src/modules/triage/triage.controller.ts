@@ -92,10 +92,19 @@ export const triageController = {
       const { internalNotes } =
         triageInternalNotesSchema.parse(req.body)
 
+      const actor = res.locals.admin as
+        | { id: string }
+        | undefined
+
+      if (!actor) {
+        throw new UnauthorizedError('Não autorizado.')
+      }
+
       const submission =
         await triageService.updateInternalNotes(
           id,
           internalNotes,
+          actor.id,
         )
 
       res.json(submission)

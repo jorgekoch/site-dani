@@ -1,5 +1,8 @@
 import { Router } from 'express'
-import { requireAdminContext } from '../../middleware/requireAdminContext.js'
+import {
+  requireAdminContext,
+  requireRole,
+} from '../../middleware/requireAdminContext.js'
 import { triageController } from './triage.controller.js'
 
 export const triageRouter = Router()
@@ -24,11 +27,13 @@ triageRouter.get(
 triageRouter.patch(
   '/:id/status',
   requireAdminContext,
+  requireRole('ADMIN'),
   triageController.updateStatus,
 )
 
 triageRouter.patch(
   '/:id/internal-notes',
   requireAdminContext,
+  requireRole('ADMIN'),
   triageController.updateInternalNotes,
 )

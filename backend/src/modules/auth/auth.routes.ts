@@ -13,6 +13,8 @@ authRouter.post("/login", authController.login);
 
 authRouter.get("/me", requireAdminContext, authController.me);
 
+authRouter.post("/logout", requireAdminContext, authController.logout);
+
 authRouter.get(
   "/users",
   requireAdminContext,

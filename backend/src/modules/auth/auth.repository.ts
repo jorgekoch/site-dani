@@ -13,6 +13,15 @@ export const authRepository = {
     });
   },
 
+  countActiveAdmins() {
+    return prisma.adminUser.count({
+      where: {
+        role: "ADMIN",
+        active: true,
+      },
+    });
+  },
+
   createUser(data: {
     name: string;
     email: string;
@@ -20,6 +29,17 @@ export const authRepository = {
     role: "ADMIN" | "STAFF";
   }) {
     return prisma.adminUser.create({
+      data,
+    });
+  },
+
+  createAuditLog(data: {
+    action: string;
+    details?: string | null;
+    actorId: string;
+    triageId?: string | null;
+  }) {
+    return prisma.auditLog.create({
       data,
     });
   },

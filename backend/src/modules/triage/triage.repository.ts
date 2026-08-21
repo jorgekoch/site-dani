@@ -40,6 +40,21 @@ export const triageRepository = {
   findById(id: string) {
     return prisma.triageSubmission.findUnique({
       where: { id },
+      include: {
+        auditLogs: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+          include: {
+            actor: {
+              select: {
+                name: true,
+                role: true,
+              },
+            },
+          },
+        },
+      },
     })
   },
 
@@ -52,19 +67,35 @@ export const triageRepository = {
     })
   },
 
-  updateInternalNotes(id: string, internalNotes: string) {
+  updateInternalNotesWithAudit(
+    id: string,
+    internalNotes: string,
+    actorId: string,
+  ) {
     const normalizedInternalNotes = normalizeTextForStorage(
       internalNotes,
     )
 
-    return prisma.triageSubmission.update({
-      where: { id },
-      data: {
-        internalNotes: normalizedInternalNotes,
-      },
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.triageSubmission.update({
+        where: { id },
+        data: {
+          internalNotes: normalizedInternalNotes,
+        },
+      })
+
+      await tx.auditLog.create({
+        data: {
+          actorId,
+          triageId: updated.id,
+          action: 'TRIAGE_INTERNAL_NOTES_UPDATED',
+          details: 'Observação interna atualizada',
+        },
+      })
+
+      return updated
     })
   },
-
 
   updateStatusWithAudit(
     id: string,

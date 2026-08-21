@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { BadRequestError } from "../../core/errors/AppError.js";
 
 import { asyncHandler } from "../../core/utils/asyncHandler.js";
+import { revokeAdminToken } from "../../lib/auth.js";
 
 import { authService } from "./auth.service.js";
 
@@ -30,6 +31,17 @@ export const authController = {
     });
   }),
 
+  logout: asyncHandler(async (req: Request, res: Response) => {
+    const header = req.header("authorization");
+    const token = header?.startsWith("Bearer ") ? header.slice(7) : null;
+
+    if (token) {
+      revokeAdminToken(token);
+    }
+
+    res.json({ message: "Logout realizado com sucesso." });
+  }),
+
   listUsers: asyncHandler(async (_req: Request, res: Response) => {
     const users = await authService.listUsers();
 
@@ -39,7 +51,13 @@ export const authController = {
   createUser: asyncHandler(async (req: Request, res: Response) => {
     const input = createUserSchema.parse(req.body);
 
-    const user = await authService.createUser(input);
+    const actor = res.locals.admin as { id: string } | undefined;
+
+    if (!actor) {
+      throw new BadRequestError("Contexto administrativo inválido.");
+    }
+
+    const user = await authService.createUser(input, actor.id);
 
     res.status(201).json(user);
   }),
@@ -53,7 +71,13 @@ export const authController = {
 
     const input = resetPasswordSchema.parse(req.body);
 
-    const user = await authService.resetPassword(id, input.password);
+    const actor = res.locals.admin as { id: string } | undefined;
+
+    if (!actor) {
+      throw new BadRequestError("Contexto administrativo inválido.");
+    }
+
+    const user = await authService.resetPassword(id, input.password, actor.id);
 
     res.json({
       message: "Senha redefinida com sucesso.",

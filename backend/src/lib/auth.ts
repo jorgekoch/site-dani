@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken'
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
 
+const revokedTokens = new Set<string>()
+
 function getJwtSecret() {
   const secret = process.env.JWT_SECRET
   if (!secret) throw new Error('JWT_SECRET is required')
@@ -14,7 +16,13 @@ export function issueAdminToken(subject: string, role: AdminRole) {
   return jwt.sign({ sub: subject, role }, getJwtSecret(), { expiresIn: '8h' })
 }
 
+export function revokeAdminToken(token: string) {
+  revokedTokens.add(token)
+}
+
 export function verifyAdminToken(token: string): AdminToken | null {
+  if (revokedTokens.has(token)) return null
+
   try {
     const payload = jwt.verify(token, getJwtSecret()) as jwt.JwtPayload
     if ((payload.role !== 'ADMIN' && payload.role !== 'STAFF') || typeof payload.sub !== 'string') return null
