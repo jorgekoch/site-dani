@@ -1,20 +1,25 @@
 import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { adminLogin } from "../../api/authApi";
+import { useAuth } from "../../auth/AuthContext";
 import "./AdminPortal.css";
 
 export function AdminLoginPage() {
   const navigate = useNavigate();
+  const { refresh } = useAuth();
   const [email, setEmail] = useState(""),
     [password, setPassword] = useState(""),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(false);
+
   async function submit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
+
     try {
       await adminLogin(email, password);
+      await refresh();
       navigate("/admin/triagens", { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível entrar.");
@@ -22,12 +27,14 @@ export function AdminLoginPage() {
       setLoading(false);
     }
   }
+
   return (
     <main className="admin-page">
       <section className="admin-card">
         <span className="admin-eyebrow">Dani Evangelista · Portal</span>
         <h1>Acesso administrativo</h1>
         <p>Entre para consultar e acompanhar as fichas de triagem.</p>
+
         <form onSubmit={submit}>
           <label>
             E-mail
@@ -39,6 +46,7 @@ export function AdminLoginPage() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </label>
+
           <label>
             Senha
             <input
@@ -49,11 +57,13 @@ export function AdminLoginPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </label>
+
           {error && (
             <p className="admin-error" role="alert">
               {error}
             </p>
           )}
+
           <button disabled={loading}>
             {loading ? "Entrando…" : "Entrar no portal"}
           </button>
