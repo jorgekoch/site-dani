@@ -1,12 +1,22 @@
-import { z } from 'zod'
+import { z } from "zod";
 
-export const treatmentReasonSchema = z.enum(['INJURY_RECOVERY', 'HEALTH_MAINTENANCE'])
+export const treatmentReasonSchema = z.enum([
+  "INJURY_RECOVERY",
+  "HEALTH_MAINTENANCE",
+]);
 
 export const triageSubmissionSchema = z.object({
   fullName: z.string().trim().min(2).max(160),
   age: z.number().int().min(1).max(120),
   profession: z.string().trim().min(2).max(120),
-  whatsapp: z.string().trim().min(8).max(30),
+  whatsapp: z
+    .string()
+    .trim()
+    .transform((value) => value.replace(/\D/g, ""))
+    .refine(
+      (value) => value.length === 10 || value.length === 11,
+      "Informe um telefone válido com DDD.",
+    ),
   treatmentReason: treatmentReasonSchema,
   injuryDescription: z.string().trim().max(2000).optional(),
   injuryDuration: z.string().trim().max(200).optional(),
@@ -32,12 +42,18 @@ export const triageSubmissionSchema = z.object({
   healthConditions: z.array(z.string().trim().min(1).max(160)).max(30),
   additionalHealthInfo: z.string().trim().max(3000).optional(),
   consentAccepted: z.literal(true),
-})
+});
 
-export const triageStatusSchema = z.enum(['NEW', 'IN_REVIEW', 'ACCEPTED', 'DECLINED', 'COMPLETED'])
+export const triageStatusSchema = z.enum([
+  "NEW",
+  "IN_REVIEW",
+  "ACCEPTED",
+  "DECLINED",
+  "COMPLETED",
+]);
 
 export const triageStatusUpdateSchema = z.object({
   status: triageStatusSchema,
-})
+});
 
-export type TriageSubmissionInput = z.infer<typeof triageSubmissionSchema>
+export type TriageSubmissionInput = z.infer<typeof triageSubmissionSchema>;
