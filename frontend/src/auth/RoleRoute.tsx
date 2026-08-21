@@ -1,4 +1,5 @@
-import { useEffect, type ReactNode } from "react";
+import type { ReactNode } from "react";
+import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import type { AdminRole } from "../api/authApi";
 
@@ -9,12 +10,6 @@ type RoleRouteProps = {
 
 export function RoleRoute({ roles, children }: RoleRouteProps) {
   const { admin, loading } = useAuth();
-
-  useEffect(() => {
-    if (!loading && !admin) {
-      window.location.replace("/admin/login");
-    }
-  }, [loading, admin]);
 
   if (loading) {
     return (
@@ -27,7 +22,7 @@ export function RoleRoute({ roles, children }: RoleRouteProps) {
   }
 
   if (!admin) {
-    return null;
+    return <Navigate to="/admin/login" replace />;
   }
 
   if (!roles.includes(admin.role)) {
@@ -37,7 +32,7 @@ export function RoleRoute({ roles, children }: RoleRouteProps) {
           <div className="admin-empty">
             <h1>Acesso não autorizado</h1>
             <p>Você não tem permissão para acessar esta área.</p>
-            <a href="/admin/triagens">Voltar para as triagens</a>
+            <Link to="/admin/triagens">Voltar para as triagens</Link>
           </div>
         </div>
       </main>

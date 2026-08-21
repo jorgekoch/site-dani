@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 import {
   createAdminUser,
@@ -14,6 +15,7 @@ import { useAuth } from "../../auth/AuthContext";
 import "./AdminPortal.css";
 
 export function AdminUsersPage() {
+  const navigate = useNavigate();
   const { admin } = useAuth();
 
   const [users, setUsers] = useState<AdminUserListItem[]>([]);
@@ -266,7 +268,7 @@ export function AdminUsersPage() {
           </div>
 
           <div className="admin-top-actions">
-            <a href="/admin/triagens">Triagens</a>
+            <Link to="/admin/triagens">Triagens</Link>
 
             <div className="admin-user">
               <strong>{admin.name}</strong>
@@ -277,7 +279,7 @@ export function AdminUsersPage() {
             <button
               type="button"
               onClick={() => {
-                window.location.replace("/admin/triagens");
+                navigate("/admin/triagens", { replace: true });
               }}
             >
               Voltar

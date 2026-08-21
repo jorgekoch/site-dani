@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 import { adminLogout } from "../../api/authApi";
 
@@ -48,6 +49,7 @@ type Submission = {
 };
 
 export function AdminTriagePage() {
+  const navigate = useNavigate();
   const [items, setItems] = useState<Submission[]>([]);
   const [status, setStatus] = useState<FilterStatus>("");
   const [search, setSearch] = useState("");
@@ -151,7 +153,7 @@ export function AdminTriagePage() {
           </div>
 
           <div className="admin-top-actions">
-            {admin?.role === "ADMIN" && <a href="/admin/usuarios">Usuários</a>}
+            {admin?.role === "ADMIN" && <Link to="/admin/usuarios">Usuários</Link>}
 
             <div className="admin-user">
               <strong>{admin?.name}</strong>
@@ -164,7 +166,7 @@ export function AdminTriagePage() {
             <button
               onClick={() => {
                 adminLogout();
-                window.location.replace("/admin/login");
+                navigate("/admin/login", { replace: true });
               }}
             >
               Sair

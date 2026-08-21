@@ -1,8 +1,10 @@
 import { FormEvent, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { adminLogin } from "../../api/authApi";
 import "./AdminPortal.css";
 
 export function AdminLoginPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState(""),
     [password, setPassword] = useState(""),
     [error, setError] = useState(""),
@@ -13,7 +15,7 @@ export function AdminLoginPage() {
     setError("");
     try {
       await adminLogin(email, password);
-      window.location.assign("/admin/triagens");
+      navigate("/admin/triagens", { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível entrar.");
     } finally {

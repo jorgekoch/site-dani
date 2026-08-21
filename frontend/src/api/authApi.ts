@@ -48,7 +48,6 @@ export async function adminLogout() {
     // Ignore logout API failures and proceed with local cleanup.
   } finally {
     clearAdminToken();
-    window.location.replace("/admin/login");
   }
 }
 

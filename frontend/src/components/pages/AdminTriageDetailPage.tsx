@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   getAdminTriage,
   updateAdminTriageInternalNotes,
@@ -121,7 +122,10 @@ function isMissingValue(value: unknown) {
   );
 }
 
-export function AdminTriageDetailPage({ id }: { id: string }) {
+export function AdminTriageDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
   const [item, setItem] = useState<any>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -131,8 +135,16 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
 
   const { admin, logout } = useAuth();
 
+  const triageId = id ?? "";
+
   useEffect(() => {
-    getAdminTriage(id)
+    if (!triageId) {
+      setError("Ficha não encontrada.");
+      setLoading(false);
+      return;
+    }
+
+    getAdminTriage(triageId)
       .then((data) => {
         setItem(data);
         setInternalNotes(data.internalNotes ?? "");
@@ -143,14 +155,14 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
         ),
       )
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [triageId]);
 
   async function change(status: TriageStatus) {
     try {
       setError("");
 
-      await updateAdminTriageStatus(id, status);
-      const refreshed = await getAdminTriage(id);
+      await updateAdminTriageStatus(triageId, status);
+      const refreshed = await getAdminTriage(triageId);
       setItem(refreshed);
       setInternalNotes(refreshed.internalNotes ?? "");
     } catch (e) {
@@ -165,11 +177,11 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
       setSavingNotes(true);
 
       const result = await updateAdminTriageInternalNotes(
-        id,
+        triageId,
         internalNotes,
       );
 
-      const refreshed = await getAdminTriage(id);
+      const refreshed = await getAdminTriage(triageId);
       setInternalNotes(refreshed.internalNotes ?? "");
       setItem(refreshed);
 
@@ -190,7 +202,7 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
 
   function handleLogout() {
     logout();
-    window.location.replace("/admin/login");
+    navigate("/admin/login", { replace: true });
   }
 
   if (loading) {
@@ -209,7 +221,7 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
         <div className="admin-shell">
           <p className="admin-error">{error || "Ficha não encontrada."}</p>
 
-          <a href="/admin/triagens">Voltar às triagens</a>
+          <Link to="/admin/triagens">Voltar às triagens</Link>
         </div>
       </main>
     );
@@ -301,9 +313,9 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
           </div>
 
           <div className="admin-top-actions">
-            <a href="/admin/triagens">Triagens</a>
+            <Link to="/admin/triagens">Triagens</Link>
 
-            {admin?.role === "ADMIN" && <a href="/admin/usuarios">Usuários</a>}
+            {admin?.role === "ADMIN" && <Link to="/admin/usuarios">Usuários</Link>}
 
             <div className="admin-user">
               <strong>{admin?.name}</strong>
@@ -341,7 +353,7 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
         </div>
 
         <div className="admin-detail-actions">
-          <a href="/admin/triagens">← Voltar às triagens</a>
+          <Link to="/admin/triagens">← Voltar às triagens</Link>
         </div>
 
         <section className="admin-detail-sections">

@@ -1,4 +1,5 @@
-import { useEffect, type ReactNode } from "react";
+import type { ReactNode } from "react";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 
 type ProtectedRouteProps = {
@@ -7,12 +8,6 @@ type ProtectedRouteProps = {
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { loading, isAuthenticated } = useAuth();
-
-  useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      window.location.replace("/admin/login");
-    }
-  }, [loading, isAuthenticated]);
 
   if (loading) {
     return (
@@ -25,7 +20,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!isAuthenticated) {
-    return null;
+    return <Navigate to="/admin/login" replace />;
   }
 
   return <>{children}</>;
