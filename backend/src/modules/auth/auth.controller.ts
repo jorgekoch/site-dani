@@ -14,6 +14,15 @@ import {
   updateUserStatusSchema,
 } from "./auth.schema.js";
 
+const isProduction = process.env.NODE_ENV === "production";
+
+const adminCookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? ("none" as const) : ("lax" as const),
+  path: "/",
+};
+
 export const authController = {
   login: asyncHandler(async (req: Request, res: Response) => {
     const input = loginSchema.parse(req.body);
@@ -23,11 +32,8 @@ export const authController = {
     const result = await authService.login(input, rateLimitKey);
 
     res.cookie("dani_admin_token", result.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      ...adminCookieOptions,
       maxAge: 8 * 60 * 60 * 1000,
-      path: "/",
     });
 
     res.json(result);
@@ -47,7 +53,7 @@ export const authController = {
       revokeAdminToken(token);
     }
 
-    res.clearCookie("dani_admin_token", { path: "/" });
+    res.clearCookie("dani_admin_token", adminCookieOptions);
 
     res.json({ message: "Logout realizado com sucesso." });
   }),
