@@ -10,6 +10,8 @@ import {
 
 import { useAuth } from "../../auth/AuthContext";
 
+import { formatWhatsapp } from "../../utils/formatWhatsapp";
+
 import "./AdminPortal.css";
 
 const statuses: TriageStatus[] = [
@@ -226,7 +228,8 @@ export function AdminTriagePage() {
                   <h2>{item.fullName}</h2>
 
                   <p>
-                    {item.profession} · {item.age} anos · {item.whatsapp}
+                    {item.profession} · {item.age} anos ·{" "}
+                    {formatWhatsapp(item.whatsapp)}
                   </p>
 
                   <p>{item.mainComplaint}</p>

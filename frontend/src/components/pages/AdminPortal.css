@@ -82,7 +82,7 @@
   gap: 12px;
   margin-bottom: 40px;
 }
-.admin-top a:first-child {
+.admin-top > a:first-child {
   background: transparent;
   color: #bdb7b1;
 }
@@ -276,9 +276,20 @@
 }
 
 .admin-top-actions a {
-  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  box-sizing: border-box;
+  padding: 0 15px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #eeeae5;
+  color: #111;
   text-decoration: none;
   font-weight: 600;
+}
+
+.admin-top-actions a:hover {
+  opacity: 0.85;
 }
 
 .admin-top-actions a:hover {

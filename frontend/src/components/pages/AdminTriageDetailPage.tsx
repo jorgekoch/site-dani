@@ -6,6 +6,7 @@ import {
 } from "../../api/triageApi";
 import { useAuth } from "../../auth/AuthContext";
 import "./AdminPortal.css";
+import { formatWhatsapp } from "../../utils/formatWhatsapp";
 
 const statuses: TriageStatus[] = [
   "NEW",
@@ -84,7 +85,7 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
     ["Nome completo", item.fullName],
     ["Idade", item.age],
     ["Profissão", item.profession],
-    ["WhatsApp", item.whatsapp],
+    ["WhatsApp", formatWhatsapp(item.whatsapp)],
     [
       "Objetivo",
       item.treatmentReason === "INJURY_RECOVERY"
