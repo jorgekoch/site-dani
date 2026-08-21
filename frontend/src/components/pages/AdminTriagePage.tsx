@@ -153,6 +153,7 @@ export function AdminTriagePage() {
           </div>
 
           <div className="admin-top-actions">
+            <Link to="/admin/arquivo">Arquivo</Link>
             {admin?.role === "ADMIN" && <Link to="/admin/usuarios">Usuários</Link>}
 
             <div className="admin-user">
@@ -330,7 +331,7 @@ export function AdminTriagePage() {
                     ))}
                   </select>
 
-                  <a href={`/admin/triagens/${item.id}`}>Ver ficha</a>
+                  <Link to={`/admin/triagens/${item.id}`}>Ver ficha</Link>
                 </div>
               </article>
             ))}
