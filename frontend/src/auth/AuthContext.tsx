@@ -28,13 +28,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
 
   async function refresh() {
-    const token = getAdminToken();
-
-    if (!token) {
-      setAdmin(null);
-      return;
-    }
-
     try {
       const response = await getAdminMe();
       setAdmin(response.admin);

@@ -15,7 +15,7 @@ export type AdminLoginResponse = {
 };
 
 export async function adminLogin(email: string, password: string) {
-  const response = await apiRequest<AdminLoginResponse>(
+  return apiRequest<AdminLoginResponse>(
     "/api/admin/auth/login",
     {
       method: "POST",
@@ -25,25 +25,17 @@ export async function adminLogin(email: string, password: string) {
       }),
     },
   );
-
-  setAdminToken(response.token);
-
-  return response;
 }
 
 export async function adminLogout() {
-  const token = localStorage.getItem("dani_admin_token");
-
   try {
-    if (token) {
-      await fetch(`${import.meta.env.VITE_API_URL ?? "http://localhost:4000"}/api/admin/auth/logout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    }
+    await fetch(`${import.meta.env.VITE_API_URL ?? "http://localhost:4000"}/api/admin/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   } catch {
     // Ignore logout API failures and proceed with local cleanup.
   } finally {

@@ -5,33 +5,27 @@ export function getApiUrl() {
 }
 
 export function getAdminToken() {
-  return localStorage.getItem("dani_admin_token");
+  return null;
 }
 
-export function setAdminToken(token: string) {
-  localStorage.setItem("dani_admin_token", token);
+export function setAdminToken(_token: string) {
+  return;
 }
 
 export function clearAdminToken() {
-  localStorage.removeItem("dani_admin_token");
+  return;
 }
 
 export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const token = getAdminToken();
-
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...(options.headers ?? {}),
-      ...(token
-        ? {
-            Authorization: `Bearer ${token}`,
-          }
-        : {}),
     },
   });
 
