@@ -168,9 +168,9 @@ describe('AdminArchivePage', () => {
 
     await waitFor(() => {
       expect(restoreAdminTriageMock).toHaveBeenCalledWith('triage-2026')
+      expect(screen.queryByText('Maria da Rosa')).not.toBeInTheDocument()
     })
 
-    expect(screen.queryByText('Maria da Rosa')).not.toBeInTheDocument()
     expect(screen.getByText('Ana Souza')).toBeInTheDocument()
   })
 })
