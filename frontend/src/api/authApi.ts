@@ -31,8 +31,25 @@ export async function adminLogin(email: string, password: string) {
   return response;
 }
 
-export function adminLogout() {
-  clearAdminToken();
+export async function adminLogout() {
+  const token = localStorage.getItem("dani_admin_token");
+
+  try {
+    if (token) {
+      await fetch(`${import.meta.env.VITE_API_URL ?? "http://localhost:4000"}/api/admin/auth/logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    }
+  } catch {
+    // Ignore logout API failures and proceed with local cleanup.
+  } finally {
+    clearAdminToken();
+    window.location.replace("/admin/login");
+  }
 }
 
 export async function getAdminMe() {
@@ -73,4 +90,24 @@ export async function updateAdminUserStatus(id: string, active: boolean) {
       active,
     }),
   });
+}
+
+export type ResetAdminUserPasswordResponse = {
+  message: string;
+  user: AdminUserListItem;
+};
+
+export async function resetAdminUserPassword(
+  id: string,
+  password: string,
+) {
+  return apiRequest<ResetAdminUserPasswordResponse>(
+    `/api/admin/auth/users/${id}/password`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({
+        password,
+      }),
+    },
+  );
 }

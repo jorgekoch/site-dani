@@ -3,6 +3,7 @@ import { FormEvent, useEffect, useState } from "react";
 import {
   createAdminUser,
   listAdminUsers,
+  resetAdminUserPassword,
   updateAdminUserStatus,
   type AdminRole,
   type AdminUserListItem,
@@ -32,6 +33,10 @@ export function AdminUsersPage() {
   const [success, setSuccess] = useState("");
 
   const [changingUserId, setChangingUserId] = useState<string | null>(null);
+  const [resettingUserId, setResettingUserId] = useState<string | null>(null);
+  const [passwordResetUserId, setPasswordResetUserId] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   async function loadUsers() {
     setLoading(true);
@@ -129,6 +134,20 @@ export function AdminUsersPage() {
   async function handleToggleStatus(user: AdminUserListItem) {
     const nextActive = !user.active;
 
+    const activeAdminsCount = users.filter(
+      (currentUser) =>
+        currentUser.role === "ADMIN" && currentUser.active,
+    ).length;
+
+    if (
+      user.role === "ADMIN" &&
+      !nextActive &&
+      activeAdminsCount <= 1
+    ) {
+      setError("Não é possível desativar o último administrador ativo.");
+      return;
+    }
+
     const action = nextActive ? "ativar" : "desativar";
 
     const confirmed = window.confirm(
@@ -170,6 +189,61 @@ export function AdminUsersPage() {
       );
     } finally {
       setChangingUserId(null);
+    }
+  }
+
+  function openPasswordReset(user: AdminUserListItem) {
+    setPasswordResetUserId(user.id);
+    setNewPassword("");
+    setConfirmPassword("");
+    setError("");
+    setSuccess("");
+  }
+
+  function cancelPasswordReset() {
+    setPasswordResetUserId(null);
+    setNewPassword("");
+    setConfirmPassword("");
+    setError("");
+  }
+
+  async function handleResetPassword(user: AdminUserListItem) {
+    const trimmedPassword = newPassword.trim();
+    const trimmedConfirmPassword = confirmPassword.trim();
+
+    if (!trimmedPassword || !trimmedConfirmPassword) {
+      window.alert("Informe e confirme a nova senha.");
+      return;
+    }
+
+    if (trimmedPassword.length < 10) {
+      window.alert("A senha deve ter pelo menos 10 caracteres.");
+      return;
+    }
+
+    if (trimmedPassword !== trimmedConfirmPassword) {
+      window.alert("As senhas não coincidem.");
+      return;
+    }
+
+    setResettingUserId(user.id);
+    setSuccess("");
+    setError("");
+
+    try {
+      const response = await resetAdminUserPassword(user.id, trimmedPassword);
+
+      setSuccess(response.message);
+      setPasswordResetUserId(null);
+      setNewPassword("");
+      setConfirmPassword("");
+      await loadUsers();
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Não foi possível redefinir a senha.",
+      );
+    } finally {
+      setResettingUserId(null);
     }
   }
 
@@ -340,6 +414,15 @@ export function AdminUsersPage() {
               const isCurrentAdmin = user.id === admin.id;
 
               const changing = changingUserId === user.id;
+              const resetting = resettingUserId === user.id;
+              const activeAdminsCount = users.filter(
+                (currentUser) =>
+                  currentUser.role === "ADMIN" && currentUser.active,
+              ).length;
+              const isLastActiveAdmin =
+                user.role === "ADMIN" &&
+                user.active &&
+                activeAdminsCount <= 1;
 
               return (
                 <article className="triage-row" key={user.id}>
@@ -358,23 +441,113 @@ export function AdminUsersPage() {
                     </small>
                   </div>
 
-                  <div className="triage-row-actions">
-                    {isCurrentAdmin ? (
-                      <small>Sua conta</small>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => handleToggleStatus(user)}
-                        disabled={changing}
-                      >
-                        {changing
-                          ? "Alterando…"
-                          : user.active
-                            ? "Desativar"
-                            : "Ativar"}
-                      </button>
-                    )}
-                  </div>
+                  {passwordResetUserId !== user.id && (
+                    <div className="triage-row-actions">
+                      {isCurrentAdmin ? (
+                        <>
+                          <small>Sua conta</small>
+
+                          <button
+                            type="button"
+                            onClick={() => openPasswordReset(user)}
+                            disabled={resetting}
+                          >
+                            {resetting ? "Aguarde…" : "Redefinir senha"}
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleStatus(user)}
+                            disabled={changing || isLastActiveAdmin}
+                            title={
+                              isLastActiveAdmin
+                                ? "Não é possível desativar o último administrador ativo."
+                                : undefined
+                            }
+                          >
+                            {changing
+                              ? "Alterando…"
+                              : user.active
+                                ? "Desativar"
+                                : "Ativar"}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => openPasswordReset(user)}
+                            disabled={resetting}
+                          >
+                            {resetting ? "Aguarde…" : "Redefinir senha"}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {passwordResetUserId === user.id && (
+                    <div className="admin-password-reset-card">
+                      <div className="admin-password-reset-header">
+                        <strong>Redefinir senha</strong>
+
+                        <button
+                          type="button"
+                          className="admin-password-reset-close"
+                          onClick={cancelPasswordReset}
+                          disabled={resetting}
+                        >
+                          Fechar
+                        </button>
+                      </div>
+
+                      <div className="admin-password-reset-fields">
+                        <label>
+                          Nova senha
+                          <input
+                            type="password"
+                            value={newPassword}
+                            onChange={(event) => setNewPassword(event.target.value)}
+                            placeholder="Mínimo 10 caracteres"
+                            autoComplete="new-password"
+                            disabled={resetting}
+                          />
+                        </label>
+
+                        <label>
+                          Confirmar senha
+                          <input
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(event) =>
+                              setConfirmPassword(event.target.value)
+                            }
+                            placeholder="Repita a nova senha"
+                            autoComplete="new-password"
+                            disabled={resetting}
+                          />
+                        </label>
+                      </div>
+
+                      <div className="admin-password-reset-actions">
+                        <button
+                          type="button"
+                          onClick={cancelPasswordReset}
+                          disabled={resetting}
+                        >
+                          Cancelar
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleResetPassword(user)}
+                          disabled={resetting}
+                        >
+                          {resetting ? "Salvando…" : "Salvar senha"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </article>
               );
             })}

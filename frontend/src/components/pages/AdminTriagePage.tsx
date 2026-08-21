@@ -23,6 +23,7 @@ const statuses: TriageStatus[] = [
 ];
 
 type FilterStatus = TriageStatus | "";
+type SortMode = "recent" | "older" | "name" | "status";
 
 const labels: Record<TriageStatus, string> = {
   NEW: "Nova",
@@ -50,6 +51,7 @@ export function AdminTriagePage() {
   const [items, setItems] = useState<Submission[]>([]);
   const [status, setStatus] = useState<FilterStatus>("");
   const [search, setSearch] = useState("");
+  const [sortMode, setSortMode] = useState<SortMode>("recent");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { admin } = useAuth();
@@ -94,21 +96,45 @@ export function AdminTriagePage() {
 
   const filtered = useMemo(() => {
     const term = search.trim().toLocaleLowerCase();
+    const nextItems = term
+      ? items.filter((item) =>
+          `${item.fullName} ${item.whatsapp} ${item.profession}`
+            .toLocaleLowerCase()
+            .includes(term),
+        )
+      : items;
 
-    if (!term) {
-      return items;
-    }
-
-    return items.filter((item) =>
-      `${item.fullName} ${item.whatsapp} ${item.profession}`
-        .toLocaleLowerCase()
-        .includes(term),
-    );
-  }, [items, search]);
+    return [...nextItems].sort((a, b) => {
+      switch (sortMode) {
+        case "older":
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case "name":
+          return a.fullName.localeCompare(b.fullName);
+        case "status":
+          return statuses.indexOf(a.status) - statuses.indexOf(b.status);
+        case "recent":
+        default:
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+    });
+  }, [items, search, sortMode]);
 
   function count(targetStatus: TriageStatus) {
     return items.filter((item) => item.status === targetStatus).length;
   }
+
+  const total = items.length;
+  const pending = items.filter(
+    (item) => item.status === "NEW" || item.status === "IN_REVIEW",
+  ).length;
+  const approved = count("ACCEPTED") + count("COMPLETED");
+  const approvalRate = total ? Math.round((approved / total) * 100) : 0;
+  const latestSubmission = items.reduce<string | null>((latest, item) => {
+    if (!latest) return item.createdAt;
+    return new Date(item.createdAt).getTime() > new Date(latest).getTime()
+      ? item.createdAt
+      : latest;
+  }, null);
 
   return (
     <main className="admin-page">
@@ -147,40 +173,76 @@ export function AdminTriagePage() {
         </div>
 
         <div className="admin-dashboard">
+          <div className="admin-stat admin-stat-highlight">
+            <small>Total</small>
+            <strong>{total}</strong>
+            <span>Fichas recebidas</span>
+          </div>
+
           <div className="admin-stat">
             <small>Novas</small>
             <strong>{count("NEW")}</strong>
+            <span>Precisam início</span>
           </div>
 
           <div className="admin-stat">
             <small>Em análise</small>
             <strong>{count("IN_REVIEW")}</strong>
+            <span>Em revisão ativa</span>
           </div>
 
           <div className="admin-stat">
+            <small>Pendentes</small>
+            <strong>{pending}</strong>
+            <span>Sem resposta final</span>
+          </div>
+
+          <div className="admin-stat admin-stat-success">
             <small>Aprovadas</small>
-            <strong>{count("ACCEPTED")}</strong>
+            <strong>{approved}</strong>
+            <span>{approvalRate}% da fila</span>
           </div>
 
-          <div className="admin-stat">
-            <small>Concluídas</small>
-            <strong>{count("COMPLETED")}</strong>
+          <div className="admin-stat admin-stat-ghost">
+            <small>Última ficha</small>
+            <strong>
+              {latestSubmission
+                ? new Date(latestSubmission).toLocaleDateString("pt-BR")
+                : "—"}
+            </strong>
+            <span>{latestSubmission ? "Recebida em" : "Sem registros"}</span>
           </div>
         </div>
 
-        <div className="admin-search">
-          <input
-            aria-label="Buscar paciente"
-            placeholder="Buscar por nome, WhatsApp ou profissão"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        <div className="admin-toolbar">
+          <div className="admin-search">
+            <input
+              aria-label="Buscar paciente"
+              placeholder="Buscar por nome, WhatsApp ou profissão"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
 
-          {search && (
-            <button type="button" onClick={() => setSearch("")}>
-              Limpar
-            </button>
-          )}
+            {search && (
+              <button type="button" onClick={() => setSearch("")}>
+                Limpar
+              </button>
+            )}
+          </div>
+
+          <div className="admin-sorter">
+            <label htmlFor="sort-mode">Ordenar por</label>
+            <select
+              id="sort-mode"
+              value={sortMode}
+              onChange={(e) => setSortMode(e.target.value as SortMode)}
+            >
+              <option value="recent">Mais recentes</option>
+              <option value="older">Mais antigas</option>
+              <option value="name">Nome</option>
+              <option value="status">Status</option>
+            </select>
+          </div>
         </div>
 
         <div className="admin-filters">
@@ -203,7 +265,10 @@ export function AdminTriagePage() {
         </div>
 
         {loading ? (
-          <p>Carregando fichas…</p>
+          <div className="admin-empty admin-empty-loading">
+            <h2>Carregando fichas…</h2>
+            <p>Buscando triagens no painel administrativo.</p>
+          </div>
         ) : error ? (
           <p className="admin-error">{error}</p>
         ) : filtered.length === 0 ? (
@@ -217,6 +282,13 @@ export function AdminTriagePage() {
             </p>
           </div>
         ) : (
+          <div className="triage-results-bar">
+            <strong>{filtered.length}</strong>
+            <span>{filtered.length === 1 ? "resultado" : "resultados"}</span>
+          </div>
+        )}
+
+        {!loading && !error && filtered.length > 0 && (
           <div className="triage-list">
             {filtered.map((item) => (
               <article className="triage-row" key={item.id}>

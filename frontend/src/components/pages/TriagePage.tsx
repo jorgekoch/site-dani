@@ -16,7 +16,6 @@ const conditions = [
   "Gestante",
   "Qualquer tipo de câncer",
   "Insuficiência renal/hepática",
-  "Nenhuma informação complementar",
 ];
 const initialForm: TriageSubmission = {
   fullName: "",
@@ -60,17 +59,17 @@ export function TriagePage() {
     value: TriageSubmission[K],
   ) => setForm((current) => ({ ...current, [key]: value }));
   const toggle = (value: string) =>
-    update(
-      "healthConditions",
-      value === "Nenhuma informação complementar"
-        ? [value]
-        : [
-            ...form.healthConditions.filter(
-              (x) => x !== "Nenhuma informação complementar",
-            ),
-            ...(form.healthConditions.includes(value) ? [] : [value]),
-          ],
-    );
+    setForm((current) => {
+      const currentlySelected = current.healthConditions ?? [];
+      const isSelected = currentlySelected.includes(value);
+
+      return {
+        ...current,
+        healthConditions: isSelected
+          ? currentlySelected.filter((item) => item !== value)
+          : [...currentlySelected, value],
+      };
+    });
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!form.consentAccepted) {

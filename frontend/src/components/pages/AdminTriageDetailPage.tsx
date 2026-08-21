@@ -25,6 +25,102 @@ const labels: Record<TriageStatus, string> = {
   COMPLETED: "Concluída",
 };
 
+type AuditEntry = {
+  id: string;
+  action: string;
+  details?: string | null;
+  createdAt: string;
+  actor?: {
+    name?: string | null;
+    role?: string | null;
+  } | null;
+};
+
+function formatAuditDescription(entry: AuditEntry) {
+  const action = entry.action;
+
+  if (action === "TRIAGE_STATUS_CHANGED") {
+    const details = (entry.details ?? "").trim();
+    const statusMatch = details.match(/([A-Z_]+)\s*->\s*([A-Z_]+)/);
+
+    if (statusMatch) {
+      const from = labels[statusMatch[1] as TriageStatus] ?? statusMatch[1];
+      const to = labels[statusMatch[2] as TriageStatus] ?? statusMatch[2];
+
+      return `Status alterado de ${from} → ${to}`;
+    }
+
+    return details ? `Status alterado: ${details}` : "Status alterado";
+  }
+
+  if (action === "TRIAGE_INTERNAL_NOTES_UPDATED") {
+    return "Observação interna atualizada";
+  }
+
+  if (action === "ADMIN_USER_STATUS_CHANGED") {
+    return entry.details || "Status de usuário alterado";
+  }
+
+  if (action === "ADMIN_USER_CREATED") {
+    return entry.details || "Usuário criado";
+  }
+
+  if (action === "ADMIN_PASSWORD_RESET") {
+    return entry.details || "Senha redefinida";
+  }
+
+  return entry.details || "Atualização registrada";
+}
+
+function getAuditActionLabel(entry: AuditEntry) {
+  switch (entry.action) {
+    case "TRIAGE_STATUS_CHANGED":
+      return "Status";
+    case "TRIAGE_INTERNAL_NOTES_UPDATED":
+      return "Observação";
+    case "ADMIN_USER_STATUS_CHANGED":
+      return "Usuário";
+    case "ADMIN_USER_CREATED":
+      return "Cadastro";
+    case "ADMIN_PASSWORD_RESET":
+      return "Segurança";
+    default:
+      return "Sistema";
+  }
+}
+
+function formatAuditDateTime(value: string) {
+  return new Date(value).toLocaleString("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+}
+
+function formatDisplayValue(value: unknown) {
+  if (value === undefined || value === null || value === "") {
+    return "Não informado";
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "Sim" : "Não";
+  }
+
+  if (Array.isArray(value)) {
+    return value.filter(Boolean).join(", ") || "Não informado";
+  }
+
+  return String(value);
+}
+
+function isMissingValue(value: unknown) {
+  return (
+    value === undefined ||
+    value === null ||
+    value === "" ||
+    (Array.isArray(value) && value.length === 0)
+  );
+}
+
 export function AdminTriageDetailPage({ id }: { id: string }) {
   const [item, setItem] = useState<any>(null);
   const [error, setError] = useState("");
@@ -53,9 +149,10 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
     try {
       setError("");
 
-      const next = await updateAdminTriageStatus(id, status);
-
-      setItem(next);
+      await updateAdminTriageStatus(id, status);
+      const refreshed = await getAdminTriage(id);
+      setItem(refreshed);
+      setInternalNotes(refreshed.internalNotes ?? "");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Não foi possível atualizar.");
     }
@@ -72,13 +169,14 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
         internalNotes,
       );
 
-      setInternalNotes(result.internalNotes ?? "");
-      setItem((current: any) => ({
-        ...current,
-        internalNotes: result.internalNotes,
-      }));
+      const refreshed = await getAdminTriage(id);
+      setInternalNotes(refreshed.internalNotes ?? "");
+      setItem(refreshed);
 
       setNotesSuccess("Observação interna salva com sucesso.");
+      if (result?.internalNotes !== undefined) {
+        setInternalNotes(result.internalNotes ?? "");
+      }
     } catch (e) {
       setError(
         e instanceof Error
@@ -117,39 +215,80 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
     );
   }
 
-  const fields = [
-    ["Nome completo", item.fullName],
-    ["Idade", item.age],
-    ["Profissão", item.profession],
-    ["WhatsApp", formatWhatsapp(item.whatsapp)],
-    [
-      "Objetivo",
-      item.treatmentReason === "INJURY_RECOVERY"
-        ? "Recuperação de lesão"
-        : "Manutenção da saúde",
-    ],
-    ["Queixa principal", item.mainComplaint],
-    ["Local", item.painLocation],
-    ["Nível da dor", item.painLevel ? `${item.painLevel}/10` : "Não informado"],
-    ["Lesão", item.injuryDescription],
-    ["Tempo da lesão", item.injuryDuration],
-    ["Encaminhamento médico", item.medicalReferral ? "Sim" : "Não"],
-    ["Diagnóstico médico", item.medicalDiagnosis],
-    ["Atividade física", item.physicalActivity ? "Sim" : "Não"],
-    ["Atividade", item.physicalActivityType],
-    ["Lesão esportiva", item.sportsInjury ? "Sim" : "Não"],
-    ["Detalhes da lesão esportiva", item.sportsInjuryDetails],
-    ["Exames", item.complementaryExams ? "Sim" : "Não"],
-    ["Detalhes dos exames", item.complementaryExamsDetails],
-    ["Cirurgia", item.surgery ? "Sim" : "Não"],
-    ["Detalhes da cirurgia", item.surgeryDetails],
-    ["Implante metálico", item.metalImplant ? "Sim" : "Não"],
-    ["Local do implante", item.metalImplantLocation],
-    ["Medicamento", item.medication ? "Sim" : "Não"],
-    ["Medicamento utilizado", item.medicationDetails],
-    ["Condições de saúde", item.healthConditions?.join(", ")],
-    ["Informações adicionais", item.additionalHealthInfo],
+  const groupedFields = [
+    {
+      title: "Dados pessoais",
+      fields: [
+        ["Nome completo", item.fullName],
+        ["Idade", item.age],
+        ["Profissão", item.profession],
+        ["WhatsApp", formatWhatsapp(item.whatsapp)],
+        ["Objetivo", item.treatmentReason === "INJURY_RECOVERY" ? "Recuperação de lesão" : "Manutenção da saúde"],
+      ],
+    },
+    {
+      title: "Queixa e dor",
+      fields: [
+        ["Queixa principal", item.mainComplaint],
+        ["Local", item.painLocation],
+        ["Nível da dor", item.painLevel ? `${item.painLevel}/10` : "Não informado"],
+        ["Lesão", item.injuryDescription],
+        ["Tempo da lesão", item.injuryDuration],
+        ["Radiografia/irradiação", item.painRadiates ? item.painRadiatesWhere || "Sim" : "Não"],
+      ],
+    },
+    {
+      title: "Histórico médico",
+      fields: [
+        ["Encaminhamento médico", item.medicalReferral ? "Sim" : "Não"],
+        ["Diagnóstico médico", item.medicalDiagnosis],
+      ],
+    },
+    {
+      title: "Atividade física",
+      fields: [
+        ["Pratica atividade física", item.physicalActivity ? "Sim" : "Não"],
+        ["Tipo de atividade", item.physicalActivityType],
+        ["Lesão esportiva", item.sportsInjury ? "Sim" : "Não"],
+        ["Detalhes da lesão esportiva", item.sportsInjuryDetails],
+      ],
+    },
+    {
+      title: "Exames e cirurgias",
+      fields: [
+        ["Exames", item.complementaryExams ? "Sim" : "Não"],
+        ["Detalhes dos exames", item.complementaryExamsDetails],
+        ["Cirurgia", item.surgery ? "Sim" : "Não"],
+        ["Detalhes da cirurgia", item.surgeryDetails],
+        ["Implante metálico", item.metalImplant ? "Sim" : "Não"],
+        ["Local do implante", item.metalImplantLocation],
+      ],
+    },
+    {
+      title: "Medicamentos",
+      fields: [
+        ["Medicamento", item.medication ? "Sim" : "Não"],
+        ["Medicamento utilizado", item.medicationDetails],
+      ],
+    },
+    {
+      title: "Condições de saúde",
+      fields: [
+        ["Condições", item.healthConditions?.join(", ")],
+        ["Informações adicionais", item.additionalHealthInfo],
+      ],
+    },
+    {
+      title: "Informações do paciente",
+      fields: [
+        ["Consentimento", item.consentAccepted ? "Sim" : "Não"],
+        ["Recebida em", new Date(item.createdAt).toLocaleString("pt-BR")],
+        ["Última atualização", new Date(item.updatedAt).toLocaleString("pt-BR")],
+      ],
+    },
   ];
+
+  const historyEntries = (item.auditLogs ?? []) as AuditEntry[];
 
   return (
     <main className="admin-page">
@@ -205,31 +344,87 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
           <a href="/admin/triagens">← Voltar às triagens</a>
         </div>
 
-        <section className="admin-detail-grid">
-          {fields
-            .filter(
+        <section className="admin-detail-sections">
+          {groupedFields.map((section) => {
+            const visibleFields = section.fields.filter(
               ([, value]) =>
                 value !== undefined && value !== null && value !== "",
-            )
-            .map(([label, value]) => (
-              <article key={label}>
-                <small>{label}</small>
+            );
 
-                {label === "WhatsApp" ? (
-                  <p>
-                    <a
-                      href={`https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {String(value)}
-                    </a>
-                  </p>
-                ) : (
-                  <p>{String(value)}</p>
-                )}
+            if (!visibleFields.length) return null;
+
+            return (
+              <article key={section.title} className="admin-detail-section">
+                <div className="admin-detail-section-header">
+                  <h2>{section.title}</h2>
+                </div>
+
+                <div className="admin-detail-grid">
+                  {visibleFields.map(([label, value]) => {
+                    const displayValue = formatDisplayValue(value);
+                    const missing = isMissingValue(value);
+
+                    return (
+                      <div
+                        key={`${section.title}-${label}`}
+                        className={`admin-detail-item ${missing ? "is-empty" : ""}`}
+                      >
+                        <small>{label}</small>
+
+                        {label === "WhatsApp" && !missing ? (
+                          <p>
+                            <a
+                              href={`https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}`}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {displayValue}
+                            </a>
+                          </p>
+                        ) : (
+                          <p>{displayValue}</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </article>
-            ))}
+            );
+          })}
+        </section>
+
+        <section className="admin-history-panel">
+          <div className="admin-detail-section-header">
+            <h2>Histórico de alterações</h2>
+          </div>
+
+          {historyEntries.length ? (
+            <div className="admin-history-list">
+              {historyEntries.map((entry) => (
+                <div key={entry.id} className="admin-history-item">
+                  <div className="admin-history-date">
+                    <span>{formatAuditDateTime(entry.createdAt)}</span>
+                  </div>
+
+                  <div className="admin-history-content">
+                    <span className="admin-history-tag">
+                      {getAuditActionLabel(entry)}
+                    </span>
+
+                    <strong>{formatAuditDescription(entry)}</strong>
+
+                    <span>
+                      {entry.actor?.name
+                        ? `por ${entry.actor.name}${entry.actor?.role ? ` (${entry.actor.role === "ADMIN" ? "Administrador" : "Equipe"})` : ""}`
+                        : "por administrador"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="admin-empty-copy">Ainda não há alterações registradas.</p>
+          )}
         </section>
 
         <section className="admin-internal-notes">
