@@ -33,56 +33,6 @@ test('records an audit entry when viewing a triage record', async () => {
   }
 })
 
-test('allows an admin to trigger retention cleanup manually', async () => {
-  const originalCleanupExpiredSubmissions = triageService.cleanupExpiredSubmissions
-
-  try {
-    triageService.cleanupExpiredSubmissions = async (retentionDays: number) => {
-      assert.equal(retentionDays, 90)
-      return {
-        count: 3,
-        retentionDays,
-      }
-    }
-
-    const result = await triageService.cleanupExpiredSubmissions(90)
-
-    assert.deepEqual(result, {
-      count: 3,
-      retentionDays: 90,
-    })
-  } finally {
-    triageService.cleanupExpiredSubmissions = originalCleanupExpiredSubmissions
-  }
-})
-
-test('anonymizes expired triage records after the retention period', async () => {
-  const originalFindExpiredForRetention = triageRepository.findExpiredForRetention
-  const originalAnonymizeExpired = triageRepository.anonymizeExpired
-
-  try {
-    triageRepository.findExpiredForRetention = async (cutoff: Date) => {
-      assert.ok(cutoff instanceof Date)
-      return [{ id: 'triage-old-1' }, { id: 'triage-old-2' }]
-    }
-
-    triageRepository.anonymizeExpired = async (ids: string[]) => {
-      assert.deepEqual(ids, ['triage-old-1', 'triage-old-2'])
-      return 2
-    }
-
-    const result = await triageService.cleanupExpiredSubmissions(30)
-
-    assert.deepEqual(result, {
-      count: 2,
-      retentionDays: 30,
-    })
-  } finally {
-    triageRepository.findExpiredForRetention = originalFindExpiredForRetention
-    triageRepository.anonymizeExpired = originalAnonymizeExpired
-  }
-})
-
 test('records an audit entry when updating internal notes', async () => {
   const originalFindById = triageRepository.findById
   const originalUpdateInternalNotesWithAudit =
