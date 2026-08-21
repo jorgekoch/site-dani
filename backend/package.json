@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
     "test:unit": "jest",
     "test:unit:watch": "jest --watch",
     "test:coverage": "jest --coverage"
