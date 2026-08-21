@@ -489,3 +489,90 @@
 .admin-detail-grid article a:hover {
   text-decoration: underline;
 }
+
+.admin-internal-notes {
+  margin-top: 24px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: #101013;
+}
+
+.admin-internal-notes-header {
+  margin-bottom: 18px;
+}
+
+.admin-internal-notes-header h2 {
+  margin: 8px 0 6px;
+  font-size: 20px;
+}
+
+.admin-internal-notes-header p {
+  margin: 0;
+  color: #8f8983;
+  line-height: 1.5;
+}
+
+.admin-internal-notes textarea {
+  display: block;
+  width: 100%;
+  min-height: 140px;
+  box-sizing: border-box;
+  padding: 14px;
+  border: 1px solid #333339;
+  background: #08080a;
+  color: #f1eee9;
+  font: inherit;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+}
+
+.admin-internal-notes textarea:focus {
+  border-color: #f1eee9;
+}
+
+.admin-internal-notes-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.admin-internal-notes-footer small {
+  color: #77716c;
+}
+
+.admin-internal-notes-footer button {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid #f1eee9;
+  background: #f1eee9;
+  color: #08080a;
+  font: inherit;
+  cursor: pointer;
+}
+
+.admin-internal-notes-footer button:hover {
+  opacity: 0.85;
+}
+
+.admin-internal-notes-footer button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+  .admin-internal-notes {
+    padding: 18px;
+  }
+
+  .admin-internal-notes-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-internal-notes-footer button {
+    width: 100%;
+  }
+}

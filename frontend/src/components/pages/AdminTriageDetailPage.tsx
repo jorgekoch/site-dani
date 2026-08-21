@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   getAdminTriage,
+  updateAdminTriageInternalNotes,
   updateAdminTriageStatus,
   type TriageStatus,
 } from "../../api/triageApi";
@@ -28,12 +29,18 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
   const [item, setItem] = useState<any>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [internalNotes, setInternalNotes] = useState("");
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [notesSuccess, setNotesSuccess] = useState("");
 
   const { admin, logout } = useAuth();
 
   useEffect(() => {
     getAdminTriage(id)
-      .then(setItem)
+      .then((data) => {
+        setItem(data);
+        setInternalNotes(data.internalNotes ?? "");
+      })
       .catch((e) =>
         setError(
           e instanceof Error ? e.message : "Não foi possível carregar a ficha.",
@@ -51,6 +58,35 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
       setItem(next);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Não foi possível atualizar.");
+    }
+  }
+
+  async function saveInternalNotes() {
+    try {
+      setError("");
+      setNotesSuccess("");
+      setSavingNotes(true);
+
+      const result = await updateAdminTriageInternalNotes(
+        id,
+        internalNotes,
+      );
+
+      setInternalNotes(result.internalNotes ?? "");
+      setItem((current: any) => ({
+        ...current,
+        internalNotes: result.internalNotes,
+      }));
+
+      setNotesSuccess("Observação interna salva com sucesso.");
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Não foi possível salvar a observação.",
+      );
+    } finally {
+      setSavingNotes(false);
     }
   }
 
@@ -194,6 +230,49 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
                 )}
               </article>
             ))}
+        </section>
+
+        <section className="admin-internal-notes">
+          <div className="admin-internal-notes-header">
+            <div>
+              <span className="admin-eyebrow">Uso interno</span>
+
+              <h2>Observações internas</h2>
+
+              <p>
+                Visível apenas para a equipe administrativa.
+              </p>
+            </div>
+          </div>
+
+          <textarea
+            value={internalNotes}
+            onChange={(event) => {
+              setInternalNotes(event.target.value);
+              setNotesSuccess("");
+            }}
+            placeholder="Adicione uma observação sobre esta ficha..."
+            maxLength={5000}
+            disabled={savingNotes}
+          />
+
+          <div className="admin-internal-notes-footer">
+            <small>{internalNotes.length}/5000</small>
+
+            <button
+              type="button"
+              onClick={saveInternalNotes}
+              disabled={savingNotes}
+            >
+              {savingNotes ? "Salvando…" : "Salvar observação"}
+            </button>
+          </div>
+
+          {notesSuccess && (
+            <p className="admin-success" role="status">
+              {notesSuccess}
+            </p>
+          )}
         </section>
 
         {error && <p className="admin-error">{error}</p>}

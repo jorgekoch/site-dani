@@ -41,6 +41,7 @@ export type TriageSubmission = {
 
   healthConditions: string[];
   additionalHealthInfo?: string;
+  internalNotes?: string;
 
   consentAccepted: boolean;
 };
@@ -136,5 +137,18 @@ export async function updateAdminTriageStatus(
   }>(`/api/admin/triage/${id}/status`, {
     method: "PATCH",
     body: JSON.stringify({ status }),
+  });
+}
+
+export async function updateAdminTriageInternalNotes(
+  id: string,
+  internalNotes: string,
+) {
+  return apiRequest<{
+    id: string;
+    internalNotes: string | null;
+  }>(`/api/admin/triage/${id}/internal-notes`, {
+    method: "PATCH",
+    body: JSON.stringify({ internalNotes }),
   });
 }
