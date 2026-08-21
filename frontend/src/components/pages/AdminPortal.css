@@ -26,7 +26,7 @@
 .admin-detail-head h1,
 .admin-top h1 {
   font:
-    700 clamp(42px, 6vw, 70px)/0.95 "Manrope",
+    700 clamp(38px, 5.2vw, 64px)/0.98 "Manrope",
     sans-serif;
   letter-spacing: -0.06em;
   margin: 16px 0;
@@ -301,7 +301,7 @@
 .admin-stat strong {
   display: block;
   margin-top: 10px;
-  font-size: clamp(24px, 3vw, 32px);
+  font-size: clamp(22px, 2.7vw, 28px);
   letter-spacing: -0.04em;
 }
 .admin-stat span {
