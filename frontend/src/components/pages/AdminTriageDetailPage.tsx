@@ -167,14 +167,6 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
 
         <div className="admin-detail-actions">
           <a href="/admin/triagens">← Voltar às triagens</a>
-
-          <a
-            href={`https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            WhatsApp
-          </a>
         </div>
 
         <section className="admin-detail-grid">
@@ -186,7 +178,20 @@ export function AdminTriageDetailPage({ id }: { id: string }) {
             .map(([label, value]) => (
               <article key={label}>
                 <small>{label}</small>
-                <p>{String(value)}</p>
+
+                {label === "WhatsApp" ? (
+                  <p>
+                    <a
+                      href={`https://wa.me/${String(item.whatsapp).replace(/\D/g, "")}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {String(value)}
+                    </a>
+                  </p>
+                ) : (
+                  <p>{String(value)}</p>
+                )}
               </article>
             ))}
         </section>

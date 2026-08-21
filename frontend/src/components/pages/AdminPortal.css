@@ -464,3 +464,28 @@
     width: 100%;
   }
 }
+
+.admin-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.admin-detail-actions a {
+  color: #f1eee9;
+  text-decoration: none;
+}
+
+.admin-detail-actions a:hover {
+  text-decoration: underline;
+}
+
+.admin-detail-grid article a {
+  color: #f1eee9;
+  text-decoration: none;
+}
+
+.admin-detail-grid article a:hover {
+  text-decoration: underline;
+}
