@@ -1,5 +1,5 @@
 import { MemoryRouter } from 'react-router-dom'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -103,7 +103,10 @@ describe('AdminArchivePage', () => {
 
     expect(screen.getByText('2026')).toBeInTheDocument()
     expect(screen.getByText('2025')).toBeInTheDocument()
-    expect(screen.getByText('2')).toBeInTheDocument()
+
+    const overview = screen.getByRole('region', { name: /resumo do arquivo/i })
+    expect(within(overview).getByText('2')).toBeInTheDocument()
+    expect(within(overview).getByText('fichas arquivadas')).toBeInTheDocument()
 
     expect(listArchivedTriagesMock).toHaveBeenCalledTimes(1)
   })
@@ -121,7 +124,10 @@ describe('AdminArchivePage', () => {
 
     expect(screen.getByText('Ana Souza')).toBeInTheDocument()
     expect(screen.queryByText('Maria da Rosa')).not.toBeInTheDocument()
-    expect(screen.getByText(/1 ficha encontrada/i)).toBeInTheDocument()
+
+    const resultsSummary = document.querySelector('.archive-results-summary')
+    expect(resultsSummary).not.toBeNull()
+    expect(resultsSummary).toHaveTextContent('1 ficha encontrada')
   })
 
   it('exibe a ação de restaurar para administrador', async () => {
