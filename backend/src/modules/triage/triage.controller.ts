@@ -59,17 +59,6 @@ export const triageController = {
     res.json(submission)
   }),
 
-  cleanupRetention: asyncHandler(async (_req: Request, res: Response) => {
-    const retentionDays = Number(process.env.DATA_RETENTION_DAYS ?? 90)
-
-    const result = await triageService.cleanupExpiredSubmissions(retentionDays)
-
-    res.json({
-      message: 'Limpeza de retenção concluída.',
-      ...result,
-    })
-  }),
-
   updateStatus: asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params
 
@@ -129,4 +118,68 @@ export const triageController = {
       res.json(submission)
     },
   ),
+
+  listArchived: asyncHandler(async (_req: Request, res: Response) => {
+    const submissions = await triageService.listArchived()
+
+    res.json(submissions)
+  }),
+
+  archive: asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params
+
+    if (typeof id !== 'string' || !id) {
+      throw new BadRequestError(
+        'Identificador da ficha inválido.',
+      )
+    }
+
+    const actor = res.locals.admin as
+      | { id: string }
+      | undefined
+
+    if (!actor) {
+      throw new UnauthorizedError('Não autorizado.')
+    }
+
+    const submission = await triageService.archive(
+      id,
+      actor.id,
+    )
+
+    res.json({
+      id: submission.id,
+      archivedAt: submission.archivedAt,
+      message: 'Ficha arquivada com sucesso.',
+    })
+  }),
+
+  restore: asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params
+
+    if (typeof id !== 'string' || !id) {
+      throw new BadRequestError(
+        'Identificador da ficha inválido.',
+      )
+    }
+
+    const actor = res.locals.admin as
+      | { id: string }
+      | undefined
+
+    if (!actor) {
+      throw new UnauthorizedError('Não autorizado.')
+    }
+
+    const submission = await triageService.restore(
+      id,
+      actor.id,
+    )
+
+    res.json({
+      id: submission.id,
+      archivedAt: submission.archivedAt,
+      message: 'Ficha restaurada com sucesso.',
+    })
+  }),
 }

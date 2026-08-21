@@ -19,16 +19,29 @@ triageRouter.get(
 )
 
 triageRouter.get(
+  '/archive',
+  requireAdminContext,
+  triageController.listArchived,
+)
+
+triageRouter.patch(
+  '/:id/archive',
+  requireAdminContext,
+  requireRole('ADMIN'),
+  triageController.archive,
+)
+
+triageRouter.patch(
+  '/:id/restore',
+  requireAdminContext,
+  requireRole('ADMIN'),
+  triageController.restore,
+)
+
+triageRouter.get(
   '/:id',
   requireAdminContext,
   triageController.get,
-)
-
-triageRouter.post(
-  '/cleanup-retention',
-  requireAdminContext,
-  requireRole('ADMIN'),
-  triageController.cleanupRetention,
 )
 
 triageRouter.patch(

@@ -16,7 +16,10 @@ export const triageRepository = {
 
   list(status?: TriageStatus) {
     return prisma.triageSubmission.findMany({
-      where: status ? { status } : undefined,
+      where: {
+        archivedAt: null,
+        ...(status ? { status } : {}),
+      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -31,9 +34,94 @@ export const triageRepository = {
         painLocation: true,
         painLevel: true,
         treatmentReason: true,
+        archivedAt: true,
         createdAt: true,
         updatedAt: true,
       },
+    })
+  },
+
+  listArchived() {
+    return prisma.triageSubmission.findMany({
+      where: {
+        archivedAt: {
+          not: null,
+        },
+      },
+      orderBy: {
+        archivedAt: 'desc',
+      },
+      select: {
+        id: true,
+        status: true,
+        fullName: true,
+        age: true,
+        profession: true,
+        whatsapp: true,
+        mainComplaint: true,
+        painLocation: true,
+        painLevel: true,
+        treatmentReason: true,
+        archivedAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    })
+  },
+
+  findArchiveStateById(id: string) {
+    return prisma.triageSubmission.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        archivedAt: true,
+      },
+    })
+  },
+
+  archiveWithAudit(id: string, actorId: string) {
+    return prisma.$transaction(async (tx) => {
+      const archivedAt = new Date()
+
+      const updated = await tx.triageSubmission.update({
+        where: { id },
+        data: {
+          archivedAt,
+        },
+      })
+
+      await tx.auditLog.create({
+        data: {
+          actorId,
+          triageId: updated.id,
+          action: 'TRIAGE_ARCHIVED',
+          details: 'Ficha arquivada',
+        },
+      })
+
+      return updated
+    })
+  },
+
+  restoreWithAudit(id: string, actorId: string) {
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.triageSubmission.update({
+        where: { id },
+        data: {
+          archivedAt: null,
+        },
+      })
+
+      await tx.auditLog.create({
+        data: {
+          actorId,
+          triageId: updated.id,
+          action: 'TRIAGE_RESTORED',
+          details: 'Ficha restaurada do arquivo',
+        },
+      })
+
+      return updated
     })
   },
 
@@ -66,60 +154,6 @@ export const triageRepository = {
   }) {
     return prisma.auditLog.create({
       data,
-    })
-  },
-
-  findExpiredForRetention(cutoff: Date) {
-    return prisma.triageSubmission.findMany({
-      where: {
-        createdAt: {
-          lt: cutoff,
-        },
-      },
-      select: {
-        id: true,
-      },
-    })
-  },
-
-  anonymizeExpired(ids: string[]) {
-    if (ids.length === 0) {
-      return 0
-    }
-
-    return prisma.$transaction(async (tx) => {
-      const updated = await tx.triageSubmission.updateMany({
-        where: {
-          id: {
-            in: ids,
-          },
-        },
-        data: {
-          fullName: 'Dado removido',
-          whatsapp: '00000000000',
-          age: 0,
-          profession: 'Dados removidos',
-          medicalDiagnosis: null,
-          mainComplaint: 'Dados removidos por retenção',
-          painLocation: 'Dados removidos por retenção',
-          painRadiatesWhere: null,
-          painLevel: null,
-          injuryDescription: null,
-          injuryDuration: null,
-          physicalActivityType: null,
-          sportsInjuryDetails: null,
-          complementaryExamsDetails: null,
-          surgeryDetails: null,
-          metalImplantLocation: null,
-          medicationDetails: null,
-          healthConditions: ['Dados removidos'],
-          additionalHealthInfo: null,
-          internalNotes: 'Dados removidos por retenção',
-          consentAccepted: false,
-        },
-      })
-
-      return updated.count
     })
   },
 

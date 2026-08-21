@@ -1,4 +1,5 @@
 import {
+  BadRequestError,
   NotFoundError,
 } from '../../core/errors/AppError.js'
 import type { TriageStatus } from '@prisma/client'
@@ -35,18 +36,6 @@ export const triageService = {
     }
 
     return submission
-  },
-
-  async cleanupExpiredSubmissions(retentionDays: number) {
-    const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000)
-    const expired = await triageRepository.findExpiredForRetention(cutoff)
-    const ids = expired.map((item) => item.id)
-    const count = await triageRepository.anonymizeExpired(ids)
-
-    return {
-      count,
-      retentionDays,
-    }
   },
 
   async updateStatus(
@@ -87,6 +76,60 @@ export const triageService = {
     return triageRepository.updateInternalNotesWithAudit(
       id,
       internalNotes,
+      actorId,
+    )
+  },
+
+  async listArchived() {
+    return triageRepository.listArchived()
+  },
+
+  async archive(
+    id: string,
+    actorId: string,
+  ) {
+    const existing =
+      await triageRepository.findArchiveStateById(id)
+
+    if (!existing) {
+      throw new NotFoundError(
+        'Ficha não encontrada.',
+      )
+    }
+
+    if (existing.archivedAt) {
+      throw new BadRequestError(
+        'Esta ficha já está arquivada.',
+      )
+    }
+
+    return triageRepository.archiveWithAudit(
+      id,
+      actorId,
+    )
+  },
+
+  async restore(
+    id: string,
+    actorId: string,
+  ) {
+    const existing =
+      await triageRepository.findArchiveStateById(id)
+
+    if (!existing) {
+      throw new NotFoundError(
+        'Ficha não encontrada.',
+      )
+    }
+
+    if (!existing.archivedAt) {
+      throw new BadRequestError(
+        'Esta ficha não está arquivada.',
+      )
+    }
+
+    return triageRepository.restoreWithAudit(
+      id,
       actorId,
     )
   },

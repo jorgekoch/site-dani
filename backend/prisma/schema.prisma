@@ -52,13 +52,15 @@ model TriageSubmission {
   medicationDetails         String?
   healthConditions          String[]
   additionalHealthInfo      String?
-  internalNotes        String?
+  internalNotes             String?
   consentAccepted           Boolean
+  archivedAt                DateTime?
   createdAt                 DateTime        @default(now())
   updatedAt                 DateTime        @updatedAt
   auditLogs                 AuditLog[]
 
   @@index([status, createdAt])
+  @@index([archivedAt, createdAt])
   @@index([whatsapp])
 }
 
