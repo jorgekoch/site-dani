@@ -48,5 +48,24 @@ export const triageService = {
       actorId,
       existing.status,
     )
-  }
+  },
+
+  async updateInternalNotes(
+    id: string,
+    internalNotes: string,
+  ) {
+    const existing = await triageRepository.findById(id)
+
+    if (!existing) {
+      throw new NotFoundError(
+        'Ficha não encontrada.',
+      )
+    }
+
+    return triageRepository.updateInternalNotes(
+      id,
+      internalNotes,
+    )
+  },
 }
+

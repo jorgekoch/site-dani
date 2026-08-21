@@ -26,3 +26,9 @@ triageRouter.patch(
   requireAdminContext,
   triageController.updateStatus,
 )
+
+triageRouter.patch(
+  '/:id/internal-notes',
+  requireAdminContext,
+  triageController.updateInternalNotes,
+)

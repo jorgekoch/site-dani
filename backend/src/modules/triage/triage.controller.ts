@@ -6,6 +6,7 @@ import {
 } from '../../core/errors/AppError.js'
 import { asyncHandler } from '../../core/utils/asyncHandler.js'
 import {
+  triageInternalNotesSchema,
   triageStatusSchema,
   triageStatusUpdateSchema,
   triageSubmissionSchema,
@@ -77,4 +78,27 @@ export const triageController = {
 
     res.json(submission)
   }),
+
+  updateInternalNotes: asyncHandler(
+    async (req: Request, res: Response) => {
+      const { id } = req.params
+
+      if (typeof id !== 'string' || !id) {
+        throw new BadRequestError(
+          'Identificador da ficha inválido.',
+        )
+      }
+
+      const { internalNotes } =
+        triageInternalNotesSchema.parse(req.body)
+
+      const submission =
+        await triageService.updateInternalNotes(
+          id,
+          internalNotes,
+        )
+
+      res.json(submission)
+    },
+  ),
 }

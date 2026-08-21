@@ -1,4 +1,5 @@
 import { prisma } from '../../lib/prisma.js'
+import { normalizeTextForStorage } from '../../core/utils/normalizeTextForStorage.js'
 import type { TriageStatus } from '@prisma/client'
 import type { TriageSubmissionInput } from './triage.schema.js'
 
@@ -47,6 +48,19 @@ export const triageRepository = {
       where: { id },
       select: {
         status: true,
+      },
+    })
+  },
+
+  updateInternalNotes(id: string, internalNotes: string) {
+    const normalizedInternalNotes = normalizeTextForStorage(
+      internalNotes,
+    )
+
+    return prisma.triageSubmission.update({
+      where: { id },
+      data: {
+        internalNotes: normalizedInternalNotes,
       },
     })
   },

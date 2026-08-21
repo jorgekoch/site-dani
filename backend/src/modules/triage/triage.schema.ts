@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { normalizeTextForStorage } from '../../core/utils/normalizeTextForStorage.js'
+
 export const treatmentReasonSchema = z.enum([
   "INJURY_RECOVERY",
   "HEALTH_MAINTENANCE",
@@ -55,5 +57,17 @@ export const triageStatusSchema = z.enum([
 export const triageStatusUpdateSchema = z.object({
   status: triageStatusSchema,
 });
+
+export const triageInternalNotesSchema = z.object({
+  internalNotes: z
+    .string()
+    .trim()
+    .max(5000)
+    .transform((value) => normalizeTextForStorage(value)),
+})
+
+export type TriageInternalNotesInput = z.infer<
+  typeof triageInternalNotesSchema
+>
 
 export type TriageSubmissionInput = z.infer<typeof triageSubmissionSchema>;
