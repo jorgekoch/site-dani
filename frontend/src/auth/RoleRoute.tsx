@@ -9,13 +9,12 @@ type RoleRouteProps = {
 
 export function RoleRoute({ roles, children }: RoleRouteProps) {
   const { admin, loading } = useAuth();
-  const pathname = window.location.pathname.replace(/\/$/, "") || "/";
 
   useEffect(() => {
-    if (!loading && !admin && pathname !== "/") {
+    if (!loading && !admin) {
       window.location.replace("/admin/login");
     }
-  }, [loading, admin, pathname]);
+  }, [loading, admin]);
 
   if (loading) {
     return (
@@ -27,11 +26,11 @@ export function RoleRoute({ roles, children }: RoleRouteProps) {
     );
   }
 
-  if (!admin && pathname !== "/") {
+  if (!admin) {
     return null;
   }
 
-  if (!roles.includes(admin?.role ?? "STAFF")) {
+  if (!roles.includes(admin.role)) {
     return (
       <main className="admin-page">
         <div className="admin-shell">

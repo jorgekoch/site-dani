@@ -7,13 +7,12 @@ type ProtectedRouteProps = {
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { loading, isAuthenticated } = useAuth();
-  const pathname = window.location.pathname.replace(/\/$/, "") || "/";
 
   useEffect(() => {
-    if (!loading && !isAuthenticated && pathname !== "/") {
+    if (!loading && !isAuthenticated) {
       window.location.replace("/admin/login");
     }
-  }, [loading, isAuthenticated, pathname]);
+  }, [loading, isAuthenticated]);
 
   if (loading) {
     return (
@@ -25,7 +24,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  if (!isAuthenticated && pathname !== "/") {
+  if (!isAuthenticated) {
     return null;
   }
 

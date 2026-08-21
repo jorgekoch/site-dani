@@ -7,8 +7,7 @@ import {
 } from "react";
 
 import { adminLogout, getAdminMe, type AdminUser } from "../api/authApi";
-
-import { getAdminToken } from "../api/http";
+import { clearAdminToken, getAdminToken } from "../api/http";
 
 type AuthContextValue = {
   admin: AdminUser | null;
@@ -26,7 +25,6 @@ type AuthProviderProps = {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [admin, setAdmin] = useState<AdminUser | null>(null);
-
   const [loading, setLoading] = useState(true);
 
   async function refresh() {
@@ -42,7 +40,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setAdmin(response.admin);
     } catch {
       setAdmin(null);
-      adminLogout();
+      clearAdminToken();
     }
   }
 
@@ -53,8 +51,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   function logout() {
-    adminLogout();
     setAdmin(null);
+    void adminLogout();
   }
 
   return (
