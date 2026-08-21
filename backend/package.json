@@ -12,6 +12,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "test:unit": "jest",
+    "test:integration": "tsx --test tests/*.test.ts",
     "test:unit:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
