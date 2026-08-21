@@ -11,8 +11,10 @@ import { errorHandler } from './core/middleware/errorHandler.js'
 
 export const app = express()
 
-const allowedOrigin =
-  process.env.CORS_ORIGIN ?? 'http://localhost:5173'
+const allowedOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
 
 app.disable('x-powered-by')
 
@@ -20,7 +22,22 @@ app.use(helmet())
 
 app.use(
   cors({
-    origin: allowedOrigin,
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true)
+        return
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true)
+        return
+      }
+
+      callback(new Error('Origin not allowed by CORS'))
+    },
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: false,
   }),
 )
 
