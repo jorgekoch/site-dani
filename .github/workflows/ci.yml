@@ -28,6 +28,9 @@ jobs:
   backend:
     name: Backend validation
     runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      JWT_SECRET: ci-test-secret-that-is-long-enough-for-automated-tests
     defaults:
       run:
         working-directory: backend
