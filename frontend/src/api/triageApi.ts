@@ -53,6 +53,22 @@ export type TriageStatus =
   | "DECLINED"
   | "COMPLETED";
 
+export type ArchivedTriage = {
+  id: string;
+  status: TriageStatus;
+  fullName: string;
+  age: number;
+  profession: string;
+  whatsapp: string;
+  mainComplaint: string;
+  painLocation: string;
+  painLevel: number | null;
+  treatmentReason: "INJURY_RECOVERY" | "HEALTH_MAINTENANCE";
+  archivedAt: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export async function submitTriage(data: TriageSubmission) {
   return apiRequest<{
     id: string;
@@ -79,10 +95,15 @@ export async function listAdminTriages(status?: TriageStatus) {
       painLocation: string;
       painLevel: number | null;
       treatmentReason: "INJURY_RECOVERY" | "HEALTH_MAINTENANCE";
+      archivedAt: string | null;
       createdAt: string;
       updatedAt: string;
     }>
   >(`/api/admin/triage${query}`);
+}
+
+export async function listArchivedTriages() {
+  return apiRequest<ArchivedTriage[]>("/api/admin/triage/archive");
 }
 
 export async function getAdminTriage(id: string) {
@@ -90,6 +111,7 @@ export async function getAdminTriage(id: string) {
     TriageSubmission & {
       id: string;
       status: TriageStatus;
+      archivedAt: string | null;
       createdAt: string;
       updatedAt: string;
     }
@@ -132,6 +154,7 @@ export async function updateAdminTriageStatus(
     healthConditions: string[];
     additionalHealthInfo: string | null;
     consentAccepted: boolean;
+    archivedAt: string | null;
     createdAt: string;
     updatedAt: string;
   }>(`/api/admin/triage/${id}/status`, {
@@ -150,5 +173,25 @@ export async function updateAdminTriageInternalNotes(
   }>(`/api/admin/triage/${id}/internal-notes`, {
     method: "PATCH",
     body: JSON.stringify({ internalNotes }),
+  });
+}
+
+export async function archiveAdminTriage(id: string) {
+  return apiRequest<{
+    id: string;
+    archivedAt: string;
+    message: string;
+  }>(`/api/admin/triage/${id}/archive`, {
+    method: "PATCH",
+  });
+}
+
+export async function restoreAdminTriage(id: string) {
+  return apiRequest<{
+    id: string;
+    archivedAt: null;
+    message: string;
+  }>(`/api/admin/triage/${id}/restore`, {
+    method: "PATCH",
   });
 }
