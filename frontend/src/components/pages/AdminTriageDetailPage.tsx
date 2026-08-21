@@ -10,6 +10,7 @@ import {
 } from "../../api/triageApi";
 import { useAuth } from "../../auth/AuthContext";
 import "./AdminPortal.css";
+import "./AdminTriageDetailEnhancements.css";
 import { formatWhatsapp } from "../../utils/formatWhatsapp";
 
 const statuses: TriageStatus[] = [
