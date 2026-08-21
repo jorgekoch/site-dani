@@ -1,0 +1,206 @@
+.admin-history-accordion {
+  padding: 0;
+  overflow: hidden;
+}
+
+.admin-history-summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px;
+  cursor: pointer;
+  background: linear-gradient(135deg, rgba(216, 185, 118, 0.06), rgba(255, 255, 255, 0.01));
+  transition: background 180ms ease;
+}
+
+.admin-history-summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-history-summary:hover {
+  background: linear-gradient(135deg, rgba(216, 185, 118, 0.1), rgba(255, 255, 255, 0.025));
+}
+
+.admin-history-summary h2 {
+  margin: 8px 0 6px;
+  font-size: 1.2rem;
+  letter-spacing: -0.04em;
+}
+
+.admin-history-summary p {
+  margin: 0;
+  color: #8f8983;
+  line-height: 1.5;
+}
+
+.admin-history-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  color: #d8b976;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-history-chevron {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid rgba(216, 185, 118, 0.3);
+  border-radius: 999px;
+  background: rgba(216, 185, 118, 0.07);
+  color: #e9d2a0;
+  font-size: 1.2rem;
+  line-height: 1;
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.admin-history-accordion[open] .admin-history-chevron {
+  transform: rotate(180deg);
+  background: rgba(216, 185, 118, 0.14);
+}
+
+.admin-history-accordion[open] .admin-history-summary {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.admin-history-body {
+  padding: 20px 24px 24px;
+}
+
+.admin-archive-action {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 32px;
+  margin-top: 42px;
+  padding: 28px 30px;
+  overflow: hidden;
+  border: 1px solid rgba(216, 185, 118, 0.26);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(216, 185, 118, 0.12), transparent 36%),
+    linear-gradient(135deg, #111115, #0c0c0f);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
+}
+
+.admin-archive-action::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(180deg, #e3c985, #8d7442);
+}
+
+.admin-archive-action.is-archived {
+  border-color: rgba(116, 201, 143, 0.24);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(116, 201, 143, 0.09), transparent 36%),
+    linear-gradient(135deg, #101412, #0c0e0d);
+}
+
+.admin-archive-action.is-archived::before {
+  background: linear-gradient(180deg, #9fd3ad, #527d5d);
+}
+
+.admin-archive-action-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 680px;
+}
+
+.admin-archive-action-copy h2 {
+  margin: 9px 0 8px;
+  color: #f1eee9;
+  font-size: clamp(1.3rem, 2vw, 1.65rem);
+  letter-spacing: -0.04em;
+}
+
+.admin-archive-action-copy p {
+  margin: 0;
+  max-width: 650px;
+  color: #98918b;
+  line-height: 1.65;
+}
+
+.admin-archive-action-button {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-width: 210px;
+  gap: 4px;
+  padding: 14px 20px;
+  border: 1px solid #e4cf9d;
+  background: linear-gradient(135deg, #f1eee9, #dac89d);
+  color: #11100e;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(216, 185, 118, 0.12);
+  transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+}
+
+.admin-archive-action.is-archived .admin-archive-action-button {
+  border-color: #b9d7bf;
+  background: linear-gradient(135deg, #e6f0e8, #b9d7bf);
+}
+
+.admin-archive-action-button span {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.admin-archive-action-button small {
+  color: rgba(17, 16, 14, 0.62);
+  font-size: 0.72rem;
+}
+
+.admin-archive-action-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgba(216, 185, 118, 0.18);
+}
+
+.admin-archive-action-button:focus-visible,
+.admin-history-summary:focus-visible {
+  outline: 2px solid #e9d2a0;
+  outline-offset: 3px;
+}
+
+.admin-archive-action-button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+@media (max-width: 700px) {
+  .admin-history-summary {
+    align-items: flex-start;
+    padding: 20px 18px;
+  }
+
+  .admin-history-toggle > span:first-child {
+    display: none;
+  }
+
+  .admin-history-body {
+    padding: 18px;
+  }
+
+  .admin-archive-action {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    margin-top: 30px;
+    padding: 24px 20px;
+  }
+
+  .admin-archive-action-button {
+    width: 100%;
+    min-width: 0;
+    text-align: center;
+  }
+}
