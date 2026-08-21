@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
+  archiveAdminTriage,
   getAdminTriage,
+  restoreAdminTriage,
   updateAdminTriageInternalNotes,
   updateAdminTriageStatus,
   type TriageStatus,
@@ -58,6 +60,14 @@ function formatAuditDescription(entry: AuditEntry) {
     return "Observação interna atualizada";
   }
 
+  if (action === "TRIAGE_ARCHIVED") {
+    return "Ficha arquivada";
+  }
+
+  if (action === "TRIAGE_RESTORED") {
+    return "Ficha restaurada do arquivo";
+  }
+
   if (action === "ADMIN_USER_STATUS_CHANGED") {
     return entry.details || "Status de usuário alterado";
   }
@@ -79,6 +89,10 @@ function getAuditActionLabel(entry: AuditEntry) {
       return "Status";
     case "TRIAGE_INTERNAL_NOTES_UPDATED":
       return "Observação";
+    case "TRIAGE_ARCHIVED":
+      return "Arquivo";
+    case "TRIAGE_RESTORED":
+      return "Arquivo";
     case "ADMIN_USER_STATUS_CHANGED":
       return "Usuário";
     case "ADMIN_USER_CREATED":
@@ -132,6 +146,7 @@ export function AdminTriageDetailPage() {
   const [internalNotes, setInternalNotes] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesSuccess, setNotesSuccess] = useState("");
+  const [changingArchive, setChangingArchive] = useState(false);
 
   const { admin, logout } = useAuth();
 
@@ -158,6 +173,8 @@ export function AdminTriageDetailPage() {
   }, [triageId]);
 
   async function change(status: TriageStatus) {
+    if (item?.archivedAt) return;
+
     try {
       setError("");
 
@@ -171,6 +188,8 @@ export function AdminTriageDetailPage() {
   }
 
   async function saveInternalNotes() {
+    if (item?.archivedAt) return;
+
     try {
       setError("");
       setNotesSuccess("");
@@ -197,6 +216,40 @@ export function AdminTriageDetailPage() {
       );
     } finally {
       setSavingNotes(false);
+    }
+  }
+
+  async function toggleArchive() {
+    const isArchived = Boolean(item?.archivedAt);
+    const confirmed = window.confirm(
+      isArchived
+        ? "Restaurar esta ficha? Ela voltará a aparecer na lista de triagens ativas."
+        : "Arquivar esta ficha? Ela sairá da lista de triagens ativas e continuará disponível no Arquivo.",
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setError("");
+      setChangingArchive(true);
+
+      if (isArchived) {
+        await restoreAdminTriage(triageId);
+      } else {
+        await archiveAdminTriage(triageId);
+      }
+
+      const refreshed = await getAdminTriage(triageId);
+      setItem(refreshed);
+      setInternalNotes(refreshed.internalNotes ?? "");
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Não foi possível atualizar o arquivamento da ficha.",
+      );
+    } finally {
+      setChangingArchive(false);
     }
   }
 
@@ -296,11 +349,15 @@ export function AdminTriageDetailPage() {
         ["Consentimento", item.consentAccepted ? "Sim" : "Não"],
         ["Recebida em", new Date(item.createdAt).toLocaleString("pt-BR")],
         ["Última atualização", new Date(item.updatedAt).toLocaleString("pt-BR")],
+        ...(item.archivedAt
+          ? [["Arquivada em", new Date(item.archivedAt).toLocaleString("pt-BR")]]
+          : []),
       ],
     },
   ];
 
   const historyEntries = (item.auditLogs ?? []) as AuditEntry[];
+  const isArchived = Boolean(item.archivedAt);
 
   return (
     <main className="admin-page">
@@ -314,6 +371,7 @@ export function AdminTriageDetailPage() {
 
           <div className="admin-top-actions">
             <Link to="/admin/triagens">Triagens</Link>
+            <Link to="/admin/arquivo">Arquivo</Link>
 
             {admin?.role === "ADMIN" && <Link to="/admin/usuarios">Usuários</Link>}
 
@@ -331,18 +389,23 @@ export function AdminTriageDetailPage() {
 
         <div className="admin-detail-head">
           <div>
-            <span className="admin-eyebrow">Ficha de triagem</span>
+            <span className="admin-eyebrow">
+              {isArchived ? "Ficha arquivada" : "Ficha de triagem"}
+            </span>
 
             <h1>{item.fullName}</h1>
 
             <p>
-              Recebida em {new Date(item.createdAt).toLocaleString("pt-BR")}
+              {isArchived
+                ? `Arquivada em ${new Date(item.archivedAt).toLocaleString("pt-BR")}`
+                : `Recebida em ${new Date(item.createdAt).toLocaleString("pt-BR")}`}
             </p>
           </div>
 
           <select
             value={item.status}
             onChange={(e) => change(e.target.value as TriageStatus)}
+            disabled={isArchived}
           >
             {statuses.map((status) => (
               <option key={status} value={status}>
@@ -353,7 +416,23 @@ export function AdminTriageDetailPage() {
         </div>
 
         <div className="admin-detail-actions">
-          <Link to="/admin/triagens">← Voltar às triagens</Link>
+          <Link to={isArchived ? "/admin/arquivo" : "/admin/triagens"}>
+            ← {isArchived ? "Voltar ao arquivo" : "Voltar às triagens"}
+          </Link>
+
+          {admin?.role === "ADMIN" && (
+            <button
+              type="button"
+              onClick={toggleArchive}
+              disabled={changingArchive}
+            >
+              {changingArchive
+                ? "Processando…"
+                : isArchived
+                  ? "Restaurar ficha"
+                  : "Arquivar ficha"}
+            </button>
+          )}
         </div>
 
         <section className="admin-detail-sections">
@@ -447,7 +526,9 @@ export function AdminTriageDetailPage() {
               <h2>Observações internas</h2>
 
               <p>
-                Visível apenas para a equipe administrativa.
+                {isArchived
+                  ? "A ficha está arquivada. Restaure-a para editar as observações."
+                  : "Visível apenas para a equipe administrativa."}
               </p>
             </div>
           </div>
@@ -460,7 +541,7 @@ export function AdminTriageDetailPage() {
             }}
             placeholder="Adicione uma observação sobre esta ficha..."
             maxLength={5000}
-            disabled={savingNotes}
+            disabled={savingNotes || isArchived}
           />
 
           <div className="admin-internal-notes-footer">
@@ -469,7 +550,7 @@ export function AdminTriageDetailPage() {
             <button
               type="button"
               onClick={saveInternalNotes}
-              disabled={savingNotes}
+              disabled={savingNotes || isArchived}
             >
               {savingNotes ? "Salvando…" : "Salvar observação"}
             </button>
