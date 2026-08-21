@@ -470,39 +470,54 @@ export function AdminTriageDetailPage() {
           })}
         </section>
 
-        <section className="admin-history-panel">
-          <div className="admin-detail-section-header">
-            <h2>Histórico de alterações</h2>
-          </div>
-
-          {historyEntries.length ? (
-            <div className="admin-history-list">
-              {historyEntries.map((entry) => (
-                <div key={entry.id} className="admin-history-item">
-                  <div className="admin-history-date">
-                    <span>{formatAuditDateTime(entry.createdAt)}</span>
-                  </div>
-
-                  <div className="admin-history-content">
-                    <span className="admin-history-tag">
-                      {getAuditActionLabel(entry)}
-                    </span>
-
-                    <strong>{formatAuditDescription(entry)}</strong>
-
-                    <span>
-                      {entry.actor?.name
-                        ? `por ${entry.actor.name}${entry.actor?.role ? ` (${entry.actor.role === "ADMIN" ? "Administrador" : "Equipe"})` : ""}`
-                        : "por administrador"}
-                    </span>
-                  </div>
-                </div>
-              ))}
+        <details className="admin-history-panel admin-history-accordion">
+          <summary className="admin-history-summary">
+            <div>
+              <span className="admin-eyebrow">Registro de atividades</span>
+              <h2>Histórico de alterações</h2>
+              <p>
+                {historyEntries.length === 0
+                  ? "Nenhuma alteração registrada."
+                  : `${historyEntries.length} ${historyEntries.length === 1 ? "registro" : "registros"} nesta ficha.`}
+              </p>
             </div>
-          ) : (
-            <p className="admin-empty-copy">Ainda não há alterações registradas.</p>
-          )}
-        </section>
+
+            <span className="admin-history-toggle" aria-hidden="true">
+              <span>Ver histórico</span>
+              <span className="admin-history-chevron">⌄</span>
+            </span>
+          </summary>
+
+          <div className="admin-history-body">
+            {historyEntries.length ? (
+              <div className="admin-history-list">
+                {historyEntries.map((entry) => (
+                  <div key={entry.id} className="admin-history-item">
+                    <div className="admin-history-date">
+                      <span>{formatAuditDateTime(entry.createdAt)}</span>
+                    </div>
+
+                    <div className="admin-history-content">
+                      <span className="admin-history-tag">
+                        {getAuditActionLabel(entry)}
+                      </span>
+
+                      <strong>{formatAuditDescription(entry)}</strong>
+
+                      <span>
+                        {entry.actor?.name
+                          ? `por ${entry.actor.name}${entry.actor?.role ? ` (${entry.actor.role === "ADMIN" ? "Administrador" : "Equipe"})` : ""}`
+                          : "por administrador"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="admin-empty-copy">Ainda não há alterações registradas.</p>
+            )}
+          </div>
+        </details>
 
         <section className="admin-internal-notes">
           <div className="admin-internal-notes-header">
@@ -550,19 +565,39 @@ export function AdminTriageDetailPage() {
         </section>
 
         {admin?.role === "ADMIN" && (
-          <div className="admin-detail-actions">
+          <section className={`admin-archive-action ${isArchived ? "is-archived" : ""}`}>
+            <div className="admin-archive-action-copy">
+              <span className="admin-eyebrow">
+                {isArchived ? "Ficha arquivada" : "Organização da ficha"}
+              </span>
+
+              <h2>{isArchived ? "Restaurar ao fluxo ativo" : "Arquivar esta ficha"}</h2>
+
+              <p>
+                {isArchived
+                  ? "Ao restaurar, a ficha volta para a lista principal de triagens e poderá receber novas atualizações."
+                  : "Use o arquivo quando esta ficha não precisar mais permanecer na fila ativa. Todo o histórico e os dados serão preservados."}
+              </p>
+            </div>
+
             <button
+              className="admin-archive-action-button"
               type="button"
               onClick={toggleArchive}
               disabled={changingArchive}
             >
-              {changingArchive
-                ? "Processando…"
-                : isArchived
-                  ? "Restaurar ficha"
-                  : "Arquivar ficha"}
+              <span>
+                {changingArchive
+                  ? "Processando…"
+                  : isArchived
+                    ? "Restaurar ficha"
+                    : "Arquivar ficha"}
+              </span>
+              {!changingArchive && (
+                <small>{isArchived ? "Retornar para triagens" : "Mover para o arquivo"}</small>
+              )}
             </button>
-          </div>
+          </section>
         )}
 
         {error && <p className="admin-error">{error}</p>}
